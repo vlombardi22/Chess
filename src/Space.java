@@ -59,7 +59,7 @@ public class Space {
 
     // simple call for if a piece is a king
     public boolean isKing(int color){
-        if(type == 'p' && this.color == color){
+        if(type == 'k' && this.color == color){
             return true;
         }
         return false;
