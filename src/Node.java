@@ -3,55 +3,47 @@
 public class Node {
     private boolean leaf;
     private String coords = "";
-    private int wCount = -1;
-    private int bCount = -1;
     private String parentCoords;
+    private int score = 0;
+
+    // copy constructor
+    public Node(Node other) {
+        this.leaf = other.isLeaf();
+        this.coords = other.getCoords();
+        this.parentCoords = other.getParentCoords();
+        this.score = other.getScore();
+    }
+
+    // root constructor
+    public Node(boolean leaf, String coords, int score){
+        this.leaf = leaf;
+        this.coords = coords;
+        this.score = score;
+    }
+
+
+    public Node(boolean leaf, String coords, int score, String parentCoords) {
+        this.leaf = leaf;
+        this.coords = coords;
+        this.score = score;
+        this.parentCoords = parentCoords;
+    }
+
+    // constructor from best black or best white
+    public Node(int score, boolean leaf){
+        this.score = score;
+        this.leaf = leaf;
+        parentCoords = "NA";
+        coords = "NA";
+
+    }
+
 
     public String getParentCoords() {
         return parentCoords;
     }
 
-    public int getwCount() {
-        return wCount;
-    }
-
-    public int getbCount() {
-        return bCount;
-    }
-
-
-    public Node(Node other) {
-        this.bCount = other.getbCount();
-        this.wCount = other.getwCount();
-        this.leaf = other.isLeaf();
-        this.coords = other.getCoords();
-        this.parentCoords = other.getParentCoords();
-    }
-
-    public Node(boolean leaf, String coords, int wCount, int bCount) {
-        this.leaf = leaf;
-        this.coords = coords;
-        this.wCount = wCount;
-        this.bCount = bCount;
-    }
-
-    public Node(boolean leaf, String coords, int wCount, int bCount, String parentCoords) {
-        this.leaf = leaf;
-        this.coords = coords;
-        this.wCount = wCount;
-        this.bCount = bCount;
-        this.parentCoords = parentCoords;
-    }
-
-    public Node(int wCount, int bCount, boolean leaf) {
-        this.wCount = wCount;
-        this.bCount = bCount;
-        this.leaf = leaf;
-        this.parentCoords = "NA";
-        this.coords = "NA";
-    }
-
-
+    public int getScore() { return score; }
 
     public boolean isLeaf() {
         return leaf;
@@ -60,4 +52,6 @@ public class Node {
     public String getCoords() {
         return coords;
     }
+
+
 }

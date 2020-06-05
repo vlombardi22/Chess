@@ -13,7 +13,39 @@ public class Board {
                 oldBoard[x][y] = new Space("" + x + y);
             }
         }
+        GUISetup();
+        backup();
+    }
 
+    private void GUISetup(){
+        for (int i = 0; i < 8; i++) { // place pawns
+            board[i][1].setPiece("P", 'p', 1);
+            board[i][6].setPiece("P", 'p', 2);
+        }
+
+        board[4][7].setPiece("K", 'k', 2);
+        board[4][0].setPiece("K", 'k', 1);
+
+        board[3][7].setPiece("Q", 'q', 2);
+        board[3][0].setPiece("Q", 'q', 1);
+
+        board[2][7].setPiece("B", 'b', 2);
+        board[5][7].setPiece("B", 'b', 2);
+        board[2][0].setPiece("B", 'b', 1);
+        board[5][0].setPiece("B", 'b', 1);
+
+        board[6][7].setPiece("N", 'n', 2);
+        board[1][7].setPiece("N", 'n', 2);
+        board[6][0].setPiece("N", 'n', 1);
+        board[1][0].setPiece("N", 'n', 1);
+
+        board[0][7].setPiece("R", 'r', 2);
+        board[7][7].setPiece("R", 'r', 2);
+        board[0][0].setPiece("R", 'r', 1);
+        board[7][0].setPiece("R", 'r', 1);
+    }
+
+    private void commandLineSetUp(){
         for (int i = 0; i < 8; i++) { // place pawns
             board[i][1].setPiece("P", 'p', 1);
             board[i][6].setPiece("W", 'p', 2);
@@ -35,43 +67,39 @@ public class Board {
         board[6][0].setPiece("n", 'n', 1);
         board[1][0].setPiece("n", 'n', 1);
 
+
         board[0][7].setPiece("R", 'r', 2);
         board[7][7].setPiece("R", 'r', 2);
         board[0][0].setPiece("r", 'r', 1);
         board[7][0].setPiece("r", 'r', 1);
-        backup();
+
     }
 
     // --public--
     // prints the selected piece
-    public boolean printPiece(int x, int y, int color) {
+    public boolean checkPiece(int x, int y, int color) {
         if (checkInput(x, y)) {
             if (board[x][y].getColor() != color) {
-                System.out.println("that is not your piece");
                 return false;
-            } else if (board[x][y].getType() == 'p') {
-                System.out.println("pawn");
-            } else if (board[x][y].getType() == 'r') {
-                System.out.println("rook");
-            } else if (board[x][y].getType() == 'n') {
-                System.out.println("knight");
-            } else if (board[x][y].getType() == 'b') {
-                System.out.println("bishop");
-            } else if (board[x][y].getType() == 'k') {
-                System.out.println("king");
-            } else if (board[x][y].getType() == 'q') {
-                System.out.println("queen");
             }
         }
-        System.out.println("invalid move");
+
         return true;
+    }
+
+    public String idHelper(int x, int y){
+        return board[x][y].getId();
+    }
+
+    public int colorHelper(int x, int y){
+        return board[x][y].getColor();
     }
 
     // checks if color is in check
     public boolean isCheckMate(int color) {
         int[] xy = findKing(color, board);
-        if(!isSafe(xy[0], xy[1], color,board)){
-            System.out.println("you are in check!!");
+        if(!isSafe(xy[0], xy[1], color, board)){
+            //System.out.println("you are in check!!");
             if (kingEscape(xy[0], xy[1], color)) {
                 return false;
             } else if (canBlock(color)) {
@@ -92,7 +120,7 @@ public class Board {
 
         if ((checkInput(x, y)) && (checkInput(targetx, targety))) {
             if (board[x][y].getColor() != currentColor) {
-                System.out.println("Please select your own color");
+                //System.out.println("Please select your own color");
                 return false;
             } else if (board[x][y].getType() == 'k') {
                 if (moveKing(x, y, targetx, targety, currentColor, board)) {
@@ -102,12 +130,13 @@ public class Board {
                 }
 
             } else if (board[targetx][targety].getColor() == currentColor) {
-                System.out.println("Do not target you own pieces unless castling");
+                //System.out.println("Do not target you own pieces unless castling");
                 return false;
             } else if (board[x][y].getType() == 'p') {
                 if (movePawn(x, y, targetx, targety, currentColor, board)) {
                     makeMove(x, y, targetx, targety, board);
                     if (checkKing(currentColor, board)) {
+                        promote(targetx, targety, currentColor, board);
                         backup();
                         return true;
                     } else {
@@ -157,7 +186,6 @@ public class Board {
                 }
             }
         }
-
         return false;
 
     }
@@ -187,33 +215,45 @@ public class Board {
         } else if (canBlock(color)) {
             return true;
         }
-        System.out.println("you cannot move right now");
+        //System.out.println("you cannot move right now");
         return false;
     }
 
     // The AI has already vetted its move so checking again would be redundant
     public void AIMove(int x, int y, int targetx, int targety, int currentColor) {
         if (board[x][y].getType() == 'k') {
-            if (x == 4 && targetx == 7) {
-                if (currentColor == 1) {
-                    board[5][0].setPiece("r", 'r', 1);
-                } else if (currentColor == 2) {
-                    board[5][7].setPiece("R", 'r', 2);
+            if (x == 4) {
+                if (targetx == 7) {
+                    if (currentColor == 1) {
+                        board[5][0].setPiece("R", 'r', 1);
+                    } else if (currentColor == 2) {
+                        board[5][7].setPiece("R", 'r', 2);
+                    }
+                } else if (targetx == 0) {
+                    if (currentColor == 1) {
+                        board[3][0].setPiece("R", 'r', 1);
+                    } else if (currentColor == 2) {
+                        board[3][7].setPiece("R", 'r', 2);
+                    }
                 }
             }
         }
+
         board[targetx][targety].setPiece(board[x][y]);
         board[x][y].clearSpace();
+
+        if(board[targetx][targety].getType() == 'p'){ // The AI will always give itself more queens
+            promote(x, y, currentColor, board);
+        }
+
+
         backup();
-
-
     }
 
     //--public statics--
 
     // validates AI input as the AI won't enter in index out of bounds errors
     public static boolean AICheck(int x, int y, int targetx, int targety, int currentColor, Space[][] board) {
-
         if (board[x][y].getType() == 'k') {
             if (moveKing(x, y, targetx, targety, currentColor, board)) {
                 makeMove(x, y, targetx, targety, board);
@@ -226,6 +266,7 @@ public class Board {
             if (movePawn(x, y, targetx, targety, currentColor, board)) {
                 makeMove(x, y, targetx, targety, board);
                 if (checkKing(currentColor, board)) {
+                    promote(x, y, currentColor, board);
                     return true;
                 }
             }
@@ -259,7 +300,6 @@ public class Board {
                 }
             }
         }
-
         return false;
     }
 
@@ -272,34 +312,39 @@ public class Board {
         }
     }
 
-    public static int getScore(int color, Space[][] board){
+
+    public static int calcScore(Space[][] board){
         int count = 0;
+        int multiple;
         for(int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
-                if(board[x][y].getColor() == color){
-                    if(board[x][y].getType() == 'p'){
-                        count += 10;
+                if (board[x][y].getColor() != 0) {
+                    if (board[x][y].getColor() == 2) { // changes the positive and negative sign;
+                        multiple = 1;
+                    } else {
+                        multiple = -1;
+                    }
+
+                    if (board[x][y].getType() == 'p') {
+                        count += multiple * 10;
+                    } else if (board[x][y].getType() == 'b' || board[x][y].getType() == 'n') {
+                        count += multiple * 30;
                     } else if (board[x][y].getType() == 'r') {
-                        count += 50;
-                    } else if  (board[x][y].getType() == 'b') {
-                        count += 30;
-                    } else if (board[x][y].getType() == 'n') {
-                        count += 30;
+                        count += multiple * 50;
                     } else if (board[x][y].getType() == 'q') {
-                        count += 90;
+                        count += multiple * 90;
                     } else if (board[x][y].getType() == 'k') {
-                        count += 900;
+                        count += multiple * 900;
                     }
                 }
             }
         }
         return count;
-
     }
 
     //--private--
 
-    // checks if checkmate can be prevented by a peice other than the king
+    // checks if checkmate can be prevented by a piece other than the king
     private boolean canBlock(int color) {
 
         for (int x = 0; x < 8; x++) {
@@ -366,12 +411,10 @@ public class Board {
             }
         }
         if (x == 4) { // flee via castling
-            if (color == 1 && y == 0) {
+            if ((color == 1 && y == 0) || (color == 2 && y == 7)){
                 if (canCastle(color, board)) {
                     return true;
-                }
-            } else if (color == 2 && y == 7) {
-                if (canCastle(color, board)) {
+                } else if (canQueenCastle(color, board)){
                     return true;
                 }
             }
@@ -687,19 +730,18 @@ public class Board {
             if (x == targetx || x == targetx + 1 || x == targetx - 1) {
                 if (y == targety || y == targety + 1 || y == targety - 1) {
                     if (isSafe(targetx, targety, color, board)) {
+
                         return true;
                     }
                 }
             }
-        } else if (x == 4 && targetx == 7) { // is safe is not called since a castle can't immediately put you in check
-            if (color == 1 && y == 0 && targety == 0) {
-                if (canCastle(color, board)) {
+        } else if (x == 4) {
+            if ((color == 1 && y == 0 && targety == 0) || (color == 2 && y == 7 && targety == 7)){
+                if(targetx == 7 && canCastle(color, board)){
                     castle(color, board);
                     return true;
-                }
-            } else if (color == 2 && y == 7 && targety == 7) {
-                if (canCastle(color, board)) {
-                    castle(color, board);
+                } else if(targetx == 0 && canQueenCastle(color, board)) {
+                    queenCastle(color, board);
                     return true;
                 }
             }
@@ -707,17 +749,41 @@ public class Board {
         return false;
     }
 
+    private static boolean canQueenCastle(int color, Space[][] board) {
+        if (color == 1) {
+            if (board[0][1].isPawn(color) && board[1][1].isPawn(color) && board[2][1].isPawn(color) && board[0][0].isRook(color)) {
+                if (board[1][0].getColor() == 0 && board[2][0].getColor() == 0 && board[3][0].getColor() == 0) {
+                    return true;
+                }
+            }
+        } else {
+            if (board[0][6].isPawn(color) && board[0][6].isPawn(color) && board[0][6].isPawn(color) && board[0][7].isRook(color)) {
+                if (board[1][7].getColor() == 0 && board[2][7].getColor() == 0 && board[3][7].getColor() == 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static void queenCastle(int color, Space[][] board) {
+        if (color == 1) {
+            board[3][0].setPiece("R", 'r', 1);
+        } else {
+            board[3][7].setPiece("R", 'r', 2);
+        }
+    }
+
     // castles a piece
     private static void castle(int color, Space[][] board) {
         if (color == 1) {
-            board[5][0].setPiece("r", 'r', 1);
+            board[5][0].setPiece("R", 'r', 1);
         } else {
             board[5][7].setPiece("R", 'r', 2);
         }
     }
 
     private static boolean canCastle(int color, Space[][] board) {
-
         if (color == 1) {
             if (board[5][1].isPawn(color) && board[6][1].isPawn(color) && board[7][1].isPawn(color) && board[7][0].isRook(color)) {
                 if (board[5][0].getColor() == 0 && board[6][0].getColor() == 0) {
@@ -747,6 +813,7 @@ public class Board {
 
     // gets an x and y and looks for anything that can put the king in check;
     private static boolean isSafe(int targetx, int targety, int color, Space[][] board) {
+
         int hostile = getOpponent(color);
         int i;
         int x;
@@ -768,8 +835,11 @@ public class Board {
         while (i >= 0 && board[i][targety].getColor() == 0) {
             i--;
         }
+
         if (i >= 0 && board[i][targety].getColor() == hostile) {
+
             if (board[i][targety].getType() == 'r' || board[i][targety].getType() == 'q') {
+
                 return false;
             } else if (board[i][targety].getType() == 'k' && i == targetx - 1) {
                 return false;
@@ -778,6 +848,7 @@ public class Board {
         i = targety + 1;
         while (i < 8 && board[targetx][i].getColor() == 0) {
             i++;
+
         }
         if (i < 8 && board[targetx][i].getColor() == hostile) {
             if (board[targetx][i].getType() == 'r' || board[targetx][i].getType() == 'q') {
@@ -808,6 +879,7 @@ public class Board {
         }
 
         if (x < 8 && y < 8 && board[x][y].getColor() == hostile) {
+
             if (board[x][y].getType() == 'b' || board[x][y].getType() == 'q') {
                 return false;
             } else if (board[x][y].getType() == 'k' && x == targetx + 1 && y == targety + 1) {
@@ -1033,6 +1105,7 @@ public class Board {
 
     }
 
+    // finds the king
     private static int[] findKing(int color, Space[][] board){
         int[] temp = new int[2];
         temp[0] = 0;
@@ -1047,6 +1120,67 @@ public class Board {
             }
         }
         return temp;
+    }
+
+
+    // upgrades pawn
+    private static void upgrade(int x, int y, char type, Space[][] board){
+        board[x][y].setType(type);
+        if(board[x][y].getColor() == 2){
+            if(type == 'q'){
+                board[x][y].setId("Q");
+            } else if (type == 'n') {
+                board[x][y].setId("N");
+            } else if(type == 'r'){
+                board[x][y].setId("R");
+            } else if (type == 'b') {
+                board[x][y].setId("B");
+            }
+
+        } else {
+            if(type == 'q'){
+                board[x][y].setId("q");
+            } else if (type == 'n') {
+                board[x][y].setId("n");
+            } else if(type == 'r'){
+                board[x][y].setId("r");
+            } else if (type == 'b') {
+                board[x][y].setId("b");
+            }
+        }
+    }
+
+    // method for promoting pawns
+    private static void promote(int x, int y, int color, Space[][] board){ // will be expanded later
+        if((color == 1 && y == 7) || (color == 2 && y == 0)){
+            if(findQueen(color, board)) {
+                upgrade(x, y, 'q', board);
+            }
+        }
+    }
+
+    // printout for testing
+    public static void printBoard(Space[][] board){
+        System.out.println(" |0|1|2|3|4|5|6|7|");
+        for (int y = 0; y < 8; y++) {
+            System.out.print(y);
+            for (int x = 0; x < 8; x++) {
+                System.out.print("|" + board[x][y]);
+            }
+            System.out.println("|");
+        }
+    }
+
+    public static boolean findQueen(int color, Space[][] board){
+
+        for(int y = 0; y < 8; y++){
+            for(int x = 0; x < 8; x++){
+                if(board[x][y].getColor() == color && board[x][y].getType() == 'q'){
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 }

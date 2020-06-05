@@ -15,6 +15,15 @@ public class Space {
 
     }
 
+    public void setType(char type){
+        this.type = type;
+    }
+
+    public void setId(String id){
+        this.id = id;
+    }
+
+
     // copy constructor
     Space(Space space){
         this.color = space.getColor();
