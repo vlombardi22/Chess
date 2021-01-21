@@ -749,7 +749,6 @@ public class Board {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -763,12 +762,11 @@ public class Board {
             return checkDLR(x, y, targetx, targety, board);
         } else if (x > targetx && y < targety) {
             return checkDLL(x, y, targetx, targety, board);
-        } else if (x > targetx && y > targety) {
+        } else if (x > targetx) {
             return checkDUL(x, y, targetx, targety, board);
-        } else if (x < targetx && y > targety) {
+        } else {
             return checkDUR(x, y, targetx, targety, board);
         }
-        return false;
     }
 
     private static boolean moveBishop(int x, int y, int targetx, int targety, Space[][] board) {
