@@ -91,51 +91,51 @@ public class GameManager extends JPanel implements ActionListener {
 
     // this flips the board for black in multiplayer
     private void colorBlack(){
-        boolean temp = true;
-        int a = 7;
-        int b = 7;
+        boolean pattern = true; // this boolean is used to make the checker board pattern on unoccupied spaces
+        int px = 7; // position grid x coordinate
+        int py = 7; // position grid y coordinate
         for(int y = 0; y < 8; y++){
-            temp = !temp;
+            pattern = !pattern;
             for(int x = 0; x < 8; x++){
                 if(myBoard.colorHelper(x,y) == 1){
-                    positionGrid[a][b].setText(myBoard.idHelper(x,y));
-                    positionGrid[a][b].setBackground(Color.BLACK);
-                    positionGrid[a][b].setForeground(Color.WHITE);
+                    positionGrid[px][py].setText(myBoard.idHelper(x,y));
+                    positionGrid[px][py].setBackground(Color.BLACK);
+                    positionGrid[px][py].setForeground(Color.WHITE);
                 } else if(myBoard.colorHelper(x,y) == 2) {
-                    positionGrid[a][b].setText(myBoard.idHelper(x,y));
-                    positionGrid[a][b].setBackground(Color.WHITE);
-                    positionGrid[a][b].setForeground(Color.BLACK);
+                    positionGrid[px][py].setText(myBoard.idHelper(x,y));
+                    positionGrid[px][py].setBackground(Color.WHITE);
+                    positionGrid[px][py].setForeground(Color.BLACK);
                 } else {
-                    if (temp){
-                        positionGrid[a][b].setBackground(Color.DARK_GRAY);
-                        positionGrid[a][b].setForeground(Color.WHITE);
+                    if (pattern){
+                        positionGrid[px][py].setBackground(Color.DARK_GRAY);
+                        positionGrid[px][py].setForeground(Color.WHITE);
                     } else {
-                        positionGrid[a][b].setBackground(Color.LIGHT_GRAY);
-                        positionGrid[a][b].setForeground(Color.BLACK);
+                        positionGrid[px][py].setBackground(Color.LIGHT_GRAY);
+                        positionGrid[px][py].setForeground(Color.BLACK);
                     }
-                    positionGrid[a][b].setText("");
+                    positionGrid[px][py].setText("");
                 }
-                temp = !temp;
-                a--;
-                if(a < 0){
-                    a = 7;
+                pattern = !pattern;
+                px--;
+                if(px < 0){
+                    px = 7;
                 }
             }
-            b--;
-            if(b < 0){
-                b = 7;
+            py--;
+            if(py < 0){
+                py = 7;
             }
         }
     }
 
     // color white is the default color
     private void colorWhite(){
-        boolean temp = true;
+        boolean pattern = true; // this boolean is used to make the checker board pattern on unoccupied spaces
         int wcount = 0;
         int bcount = 0;
 
         for(int y = 0; y < 8; y++){
-            temp = !temp;
+            pattern = !pattern;
             for(int x = 0; x < 8; x++){
                 if(myBoard.colorHelper(x,y) == 1){
                     positionGrid[x][y].setText(myBoard.idHelper(x,y));
@@ -148,7 +148,7 @@ public class GameManager extends JPanel implements ActionListener {
                     positionGrid[x][y].setForeground(Color.BLACK);
                     wcount++;
                 } else {
-                    if (temp){
+                    if (pattern){
                         positionGrid[x][y].setBackground(Color.DARK_GRAY);
                         positionGrid[x][y].setForeground(Color.WHITE);
                     } else {
@@ -158,7 +158,7 @@ public class GameManager extends JPanel implements ActionListener {
                     positionGrid[x][y].setText("--"); // makes it easier to see
 
                 }
-                temp = !temp;
+                pattern = !pattern;
             }
         }
         myBoard.setbCount(bcount);
@@ -171,7 +171,6 @@ public class GameManager extends JPanel implements ActionListener {
         } else {
             colorWhite();
         }
-
     }
 
     public void multiPlayer(){
