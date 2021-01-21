@@ -6,6 +6,10 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.System.exit;
 
+/**
+ UI class
+ */
+
 public class GameManager extends JPanel implements ActionListener {
     private static JFrame game; // Main game JFrame
     private JPanel chessPanel; // Panel where the game is played

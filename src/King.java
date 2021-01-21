@@ -1,3 +1,7 @@
+/**
+This class keeps track of the kings location and if they are in check or not
+ */
+
 public class King {
     private int bx;
     private int by;

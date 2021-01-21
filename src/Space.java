@@ -1,5 +1,6 @@
-
-// class for each space on the board and its respective piece
+/**
+class for each space on the board and its respective piece
+*/
 public class Space {
     private int color; // the color of the piece on the board
     private char type; // type of piece
@@ -12,7 +13,6 @@ public class Space {
         this.type = 'e';
         this.id = " ";
         this.coords = coords;
-
     }
 
     public void setType(char type){

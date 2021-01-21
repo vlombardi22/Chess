@@ -1,7 +1,8 @@
-
-// This class acts as a wrapper that holds a score and a boolean
-// the score represents the possible score for a move while hte boolean represents if it is a valid move
-// This class dramatically improves the efficiency of the AI algorithm by preventing boards from being generated for most invalid moves;
+/**
+ This class acts as a wrapper that holds a score and a boolean
+ The score represents the possible score for a move while the boolean represents if it is a valid move
+ This class dramatically improves the efficiency of the AI algorithm by preventing boards from being generated for most invalid moves
+ */
 public class ScoreHolder {
     private int score;
     private boolean valid;
@@ -163,10 +164,7 @@ public class ScoreHolder {
                             by = y;
                         }
                     }
-
                 }
-
-
             }
 
         }

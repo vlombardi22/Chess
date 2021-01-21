@@ -1,6 +1,10 @@
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+/**
+This class is the AI
+ */
+
 public class AI {
     private final int maxScore = Integer.MAX_VALUE; //2020; //1290;
     private final int minScore = Integer.MIN_VALUE; //-2020; //-1290;
@@ -74,7 +78,7 @@ public class AI {
             int count = getCount(myColor);
             for (int b = 0; b < 8; b++) {
                 for (int a = 0; a < 8; a++) {
-                    if (tempB[a][b].getColor() == target) { // recursively look at all possible moves // this was board
+                    if (tempB[a][b].getColor() == target) { // recursively look at all possible moves
                         for(int d = 0; d < 8; d++){
                             for(int c = 0; c < 8; c++){
                                 if (moveHelper(a, b, c, d, target, depth - 1, tempB, moveList, parentCoords)) {

@@ -1,4 +1,6 @@
-// is the node for the ML
+/**
+This class is the node for the ML
+*/
 
 public class Node {
     private boolean leaf;

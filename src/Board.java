@@ -1,5 +1,7 @@
-// this class runs the chess game and checks for valid moves and checkmates
-// it also helps the AI score the board
+/**
+this class runs the chess game and checks for valid moves and checkmates
+it also helps the AI score the board
+ */
 public class Board {
     private Space[][] board;
     private Space[][] oldBoard;
