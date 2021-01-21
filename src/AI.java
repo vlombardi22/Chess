@@ -2,14 +2,21 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 public class AI {
-    private final int maxScore = 1290;
-    private final int minScore = -1290;
+    private final int maxScore = Integer.MAX_VALUE; //2020; //1290;
+    private final int minScore = Integer.MIN_VALUE; //-2020; //-1290;
     private int color;
     private Space [][] board;
+    private int wCount;
+    private int bCount;
+    private int DepthBound;
 
-    public AI (Board board, int color){
+
+    public AI (Board board, int color, int depthBound){
         this.board = new Space[8][8];
         this.color = color;
+        DepthBound = depthBound;
+        wCount = 16;
+        bCount = 16;
         Space[][] temp = board.getBoard();
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) { // copy game board
@@ -20,27 +27,24 @@ public class AI {
 
     public String makeMove() {
         ArrayList<Node> moveList = new ArrayList<>();
-        int depthBound = 3; // it was slower at four and worse at the game
-        Space[][] tempBoard = new Space[8][8];
-        // make a temp board
-        for (int b = 0; b < 8; b++) {
-            for (int a = 0; a < 8; a++) {
-                tempBoard[a][b] = new Space(board[a][b]);
-            }
-        }
+        int depthBound = DepthBound;
         Hashtable<String, ArrayList<Node>> moveTree = new Hashtable<>(); // tree
-        Node root = new Node(false, "r", 0); // deep copy so we don't remove it
+        Node root;
+        if(color == 1){
+            root = new Node(false, "r", maxScore); // deep copy so we don't remove it
+        } else {
+            root = new Node(false, "r", minScore); // deep copy so we don't remove it
+        }
         moveTree.put("r", moveList);
-        int count = pieceCount(color, board);
+        int count = getCount(color);
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
                 if (board[x][y].getColor() == color) {
-
                     for (int d = 0; d < 8; d++){
                         for(int c = 0; c < 8; c++){
                             String parentcords = ""+ x + y + c + d;
-                            if (moveHelper(x, y, c, d, color, depthBound - 1, tempBoard, moveList, parentcords)) {
-                                makeMoveDepth(tempBoard, x, y, c, d, color, depthBound - 1, moveTree, parentcords);
+                            if (moveHelper(x, y, c, d, color, depthBound - 1, board, moveList, parentcords)) {
+                                makeMoveDepth(board, x, y, c, d, color, depthBound - 1, moveTree, parentcords);
                             }
                         }
                     }
@@ -58,27 +62,23 @@ public class AI {
 
     private void makeMoveDepth (Space[][] tempB, int x, int y, int targetx, int targety,  int myColor, int depth, Hashtable<String, ArrayList<Node>> moveTree, String parentCoords) {
         int target;
-        Space[][] tempBoard = new Space[8][8];
         String coords = "" + x + y + targetx + targety;
         ArrayList<Node> moveList = new ArrayList<Node>();
+
         if (depth > 0) {
             target = Board.getOpponent(myColor);
-
-            for (int b = 0; b < 8; b++) {
-                for (int a = 0; a < 8; a++) { // create a temp board
-                    tempBoard[a][b] = new Space(tempB[a][b]);
-                }
-            }
+            Space temp1 = new Space(tempB[x][y]);
+            Space temp2 = new Space(tempB[targetx][targety]);
             // makes move
-            mover(x,y, targetx, targety, myColor, tempBoard); // make possible move on temp board
-            int count = pieceCount(target, tempBoard);
+            mover(x,y,targetx, targety, myColor, tempB);
+            int count = getCount(myColor);
             for (int b = 0; b < 8; b++) {
                 for (int a = 0; a < 8; a++) {
-                    if (tempBoard[a][b].getColor() == target) { // recursively look at all possible moves // this was board
+                    if (tempB[a][b].getColor() == target) { // recursively look at all possible moves // this was board
                         for(int d = 0; d < 8; d++){
                             for(int c = 0; c < 8; c++){
-                                if (moveHelper(a, b, c, d, target, depth - 1, tempBoard, moveList, parentCoords)) {
-                                    makeMoveDepth(tempBoard, a, b, c, d, target, depth - 1, moveTree, parentCoords);
+                                if (moveHelper(a, b, c, d, target, depth - 1, tempB, moveList, parentCoords)) {
+                                    makeMoveDepth(tempB, a, b, c, d, target, depth - 1, moveTree, parentCoords);
                                 }
 
                             }
@@ -91,12 +91,16 @@ public class AI {
                     }
                 }
             }
+            tempB[x][y] = new Space(temp1);
+            tempB[targetx][targety] = new Space(temp2);
             moveTree.put(coords, moveList);
         }
     }
 
     public void updateBoard(Board board) {
         Space[][] temp = board.getBoard();
+        wCount = board.getwCount();
+        bCount = board.getbCount();
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++ ) {
                 this.board[x][y] = new Space(temp[x][y]);
@@ -107,61 +111,92 @@ public class AI {
     private void mover(int x, int y, int targetx, int targety, int myColor, Space[][] tempBoard) {
 
         if(tempBoard[x][y].getType() == 'k') {
-            if (x == 4 && targetx == 7) { // is safe is not called since a castle can't immediately put you in check
-                if (myColor == 1) {
-                    tempBoard[5][0].setPiece("r", 'r', 1);
-                } else if (myColor == 2) {
-                    tempBoard[5][7].setPiece("R", 'r', 2);
+            if (x == 4) {
+                if (targetx == 7) { // is safe is not called since a castle can't immediately put you in check
+                    if (myColor == 1) {
+                        tempBoard[5][0].setPiece("R", 'r', 1);
+                    } else if (myColor == 2) {
+                        tempBoard[5][7].setPiece("R", 'r', 2);
+                    }
+                } else if (targetx == 0){
+                    if (myColor == 1) {
+                        tempBoard[3][0].setPiece("R", 'r', 1);
+                    } else if (myColor == 2) {
+                        tempBoard[3][7].setPiece("R", 'r', 2);
+                    }
                 }
             }
         }
         tempBoard[targetx][targety].setPiece(tempBoard[x][y]);
         tempBoard[x][y].clearSpace();
+
+        if(tempBoard[targetx][targety].getType() == 'p'){ // The AI will always give itself more queens
+            if((myColor == 1 && targety == 7) || (myColor == 2 && targety == 0)) {
+                tempBoard[targetx][targety].setType('q');
+                tempBoard[targetx][targety].setId("Q");
+            }
+        }
     }
 
     private boolean moveHelper(int x, int y, int targetx, int targety, int myColor, int depth, Space[][] tBoard,  ArrayList <Node> movelist, String parentCords) {
         if(x == targetx && y == targety){ // get rid of repeats before a loop is called
             return false;
-        } else if(tBoard[targetx][targety].getColor() == myColor && tBoard[x][y].getType() != 'k'){
-            return false;
-        }
-
-        Space[][] tempBoard = new Space[8][8];
-        // make a tempboard
-        for (int b = 0; b < 8; b++) {
-            for (int a = 0; a < 8; a++) {
-                tempBoard[a][b] = new Space(tBoard[a][b]);
+        } else if (tBoard[targetx][targety].getColor() == myColor) {
+            if (!(tBoard[x][y].isKing(myColor) && tBoard[targetx][targety].isRook(myColor))) {
+                return false;
             }
         }
-        boolean test = Board.AICheck(x,y,targetx,targety,myColor,tempBoard);
-
-        if (test) {
+        ScoreHolder scoreHolder = Board.AICheck(x,y,targetx,targety,myColor,tBoard);
+        if(scoreHolder.isValid()){
             String coords = "" + x + y + targetx + targety;
             boolean leaf = false;
+            int score = scoreHolder.getScore();
             if (depth <= 0) { // takes care of leaf nodes
                 leaf = true;
             }
 
-            Node newMove = new Node(leaf, coords, Board.calcScore(tempBoard), parentCords);
+            Node newMove = new Node(leaf, coords, score, parentCords);
             movelist.add(newMove);
+
         }
-        return test;
+
+
+        return scoreHolder.isValid();
     }
 
     private String ab(Hashtable<String, ArrayList<Node>> graph, Node root, int alpha, int beta, int player, int depthBound) {
         Node bestMove;
+
         if (player == 2) {
             bestMove = bestWhite(graph, root, alpha, beta, depthBound, 0);
         } else {
             bestMove = bestBlack(graph, root, alpha, beta, depthBound, 0);
+
+            if(bestMove.getCoords().equals("9999")) {
+                Board.printBoard(board);
+                /*
+                for (Node child : graph.get(root.getCoords()))
+                {
+                    System.out.println("!!!!");
+                    System.out.println(root.getScore());
+                    System.out.println(child.getScore());
+                    System.out.println(child.getCoords());
+                }
+                */
+
+            }
+
         }
+
         return bestMove.getParentCoords();
     }
 
 
-    private Node bestWhite(Hashtable<String, ArrayList<Node>> graph, Node node, int alpha, int beta, int depthBound, int currDepth) {
+    private Node bestWhite(Hashtable<String, ArrayList<Node>> graph, Node node, int talpha, int beta, int depthBound, int currDepth) {
         currDepth++;
         Node v = new Node(minScore, false);
+        boolean childless = true;
+        int alpha = talpha;
         // checks depth
         if (currDepth < depthBound) {
             if (node.isLeaf()) {
@@ -170,27 +205,39 @@ public class AI {
             // node is not a leaf by this point so getLabel will work
             for (Node child : graph.get(node.getCoords())) {
                 Node v1 = bestBlack(graph, child, alpha, beta, depthBound, currDepth);
+                childless = false;
+
                 if (v1.getScore() >= v.getScore()) {
+
                     v = new Node(v1);
                 }
-                if (beta != maxScore) {
-                    if (v1.getScore() >= beta) {
-                        return v;
-                    }
+
+                if(alpha < v.getScore()){
+                    alpha = v.getScore();
                 }
-                if (alpha == minScore || v1.getScore() > alpha) {
-                    alpha = v1.getScore();
+
+                if(beta <= alpha){
+                   return v;
                 }
+
             }
+
+            if(childless){ // I think this happens when the node is not the bottom of the tree but there are no moves afterwords
+                return node;
+            }
+
+
         } else {
             return node;
         }
         return v;
     }
 
-    private Node bestBlack(Hashtable<String, ArrayList<Node>> graph, Node node, int alpha, int beta, int depthBound, int currDepth) {
+    private Node bestBlack(Hashtable<String, ArrayList<Node>> graph, Node node, int alpha, int tbeta, int depthBound, int currDepth) {
         currDepth++;
         Node v = new Node(maxScore, false);
+        int beta = tbeta;
+        boolean childless = true;
         // checks depth
         if (currDepth < depthBound) {
             if (node.isLeaf()) {
@@ -199,40 +246,37 @@ public class AI {
             // node is not a leaf by this point so getLabel will work
             for (Node child : graph.get(node.getCoords())) {
                 Node v1 = bestWhite(graph, child, alpha, beta, depthBound, currDepth);
+                childless = false;
+
+
                 if (v1.getScore() <= v.getScore()) {
                     v = new Node(v1);
                 }
 
-                if (alpha != minScore) {
-                    if (v1.getScore() <= alpha) {
-                        return v;
-                    }
+                if(beta > v.getScore()){
+                    beta = v.getScore();
                 }
-                if (beta == maxScore || v1.getScore() < beta) {
-                    beta = v1.getScore();
+                if(beta <= alpha){
+                    return v;
                 }
             }
+
+            if(childless){ // I think this happens when the node is not the bottom of the tree but there are no moves afterwords
+                return node;
+            }
+
         } else {
             return node;
         }
         return v;
     }
 
-    private int pieceCount(int color, Space[][] board){
-        int count = 0;
-        for (int y = 0; y < 8; y++) {
-            for (int x = 0; x < 8; x++) {
-                if(board[x][y].getColor() == color){
-                    count++;
-                    if(count == 20){
-                        return 20;
-                    }
-                }
-
-            }
+    private int getCount(int color) {
+        if(color == 2){
+            return wCount;
+        } else {
+            return bCount;
         }
-        return count;
-
     }
 }
 

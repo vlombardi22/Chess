@@ -1,10 +1,18 @@
-
+// this class runs the chess game and checks for valid moves and checkmates
+// it also helps the AI score the board
 public class Board {
     private Space[][] board;
     private Space[][] oldBoard;
+    private King kings;
+    private int bCount;
+    private int wCount;
+
 
     // constructor;
     public Board() {
+        kings = new King(4,0, 4, 7);
+        bCount = 16;
+        wCount = 16;
         board = new Space[8][8];
         oldBoard = new Space[8][8];
         for (int y = 0; y < 8; y++) {
@@ -17,7 +25,22 @@ public class Board {
         backup();
     }
 
+    public int getbCount() { return bCount; }
+
+    public void setbCount(int bCount) {
+        this.bCount = bCount;
+    }
+
+    public int getwCount() {
+        return wCount;
+    }
+
+    public void setwCount(int wCount) {
+        this.wCount = wCount;
+    }
+
     private void GUISetup(){
+
         for (int i = 0; i < 8; i++) { // place pawns
             board[i][1].setPiece("P", 'p', 1);
             board[i][6].setPiece("P", 'p', 2);
@@ -45,36 +68,6 @@ public class Board {
         board[7][0].setPiece("R", 'r', 1);
     }
 
-    private void commandLineSetUp(){
-        for (int i = 0; i < 8; i++) { // place pawns
-            board[i][1].setPiece("P", 'p', 1);
-            board[i][6].setPiece("W", 'p', 2);
-        }
-
-        board[4][7].setPiece("K", 'k', 2);
-        board[4][0].setPiece("k", 'k', 1);
-
-        board[3][7].setPiece("Q", 'q', 2);
-        board[3][0].setPiece("q", 'q', 1);
-
-        board[2][7].setPiece("B", 'b', 2);
-        board[5][7].setPiece("B", 'b', 2);
-        board[2][0].setPiece("b", 'b', 1);
-        board[5][0].setPiece("b", 'b', 1);
-
-        board[6][7].setPiece("N", 'n', 2);
-        board[1][7].setPiece("N", 'n', 2);
-        board[6][0].setPiece("n", 'n', 1);
-        board[1][0].setPiece("n", 'n', 1);
-
-
-        board[0][7].setPiece("R", 'r', 2);
-        board[7][7].setPiece("R", 'r', 2);
-        board[0][0].setPiece("r", 'r', 1);
-        board[7][0].setPiece("r", 'r', 1);
-
-    }
-
     // --public--
     // prints the selected piece
     public boolean checkPiece(int x, int y, int color) {
@@ -83,8 +76,11 @@ public class Board {
                 return false;
             }
         }
-
         return true;
+    }
+
+    public boolean isCheck(int color){ // TODO improve this
+        return kings.isCheck(color);
     }
 
     public String idHelper(int x, int y){
@@ -97,10 +93,13 @@ public class Board {
 
     // checks if color is in check
     public boolean isCheckMate(int color) {
-        int[] xy = findKing(color, board);
-        if(!isSafe(xy[0], xy[1], color, board)){
-            //System.out.println("you are in check!!");
-            if (kingEscape(xy[0], xy[1], color)) {
+        int x = kings.getX(color);
+        int y = kings.getY(color);
+        kings.clear();
+
+        if(!isSafe(x, y, color, board)){
+            kings.setCheck(true, color);
+            if (kingEscape(x, y, color)) {
                 return false;
             } else if (canBlock(color)) {
                 return false;
@@ -117,37 +116,44 @@ public class Board {
         if (x == targetx && y == targety) { // prevents repeats
             return false;
         }
+        int kx = kings.getX(currentColor);
+        int ky = kings.getY(currentColor);
 
         if ((checkInput(x, y)) && (checkInput(targetx, targety))) {
             if (board[x][y].getColor() != currentColor) {
-                //System.out.println("Please select your own color");
                 return false;
             } else if (board[x][y].getType() == 'k') {
-                if (moveKing(x, y, targetx, targety, currentColor, board)) {
+                if (moveKing(x, y, targetx, targety, currentColor)) {
+                    kings.move(targetx, targety, currentColor);
                     makeMove(x, y, targetx, targety, board);
                     backup();
                     return true; // can not inadvertently put a king in check while moving the king
                 }
-
             } else if (board[targetx][targety].getColor() == currentColor) {
-                //System.out.println("Do not target you own pieces unless castling");
                 return false;
             } else if (board[x][y].getType() == 'p') {
                 if (movePawn(x, y, targetx, targety, currentColor, board)) {
                     makeMove(x, y, targetx, targety, board);
-                    if (checkKing(currentColor, board)) {
-                        promote(targetx, targety, currentColor, board);
+                    if(isSafe(kx, ky, currentColor, board)){
                         backup();
                         return true;
                     } else {
                         reset();
                     }
+                    /*
+                    if (checkKing(currentColor, board)) {
+                        backup();
+                        return true;
+                    } else {
+                        reset();
+                    }
+                    */
                 }
 
             } else if (board[x][y].getType() == 'r') {
                 if (moveRook(x, y, targetx, targety, board)) {
                     makeMove(x, y, targetx, targety, board);
-                    if (checkKing(currentColor, board)) {
+                    if(isSafe(kx, ky, currentColor, board)){
                         backup();
                         return true;
                     } else {
@@ -157,7 +163,7 @@ public class Board {
             } else if (board[x][y].getType() == 'b') {
                 if (moveBishop(x, y, targetx, targety, board)) {
                     makeMove(x, y, targetx, targety, board);
-                    if (checkKing(currentColor, board)) {
+                    if(isSafe(kx, ky, currentColor, board)){
                         backup();
                         return true;
                     } else {
@@ -167,7 +173,7 @@ public class Board {
             } else if (board[x][y].getType() == 'n') {
                 if (moveKnight(x, y, targetx, targety)) {
                     makeMove(x, y, targetx, targety, board);
-                    if (checkKing(currentColor, board)) {
+                    if(isSafe(kx, ky, currentColor, board)){
                         backup();
                         return true;
                     } else {
@@ -177,7 +183,7 @@ public class Board {
             } else if (board[x][y].getType() == 'q') {
                 if (moveQueen(x, y, targetx, targety, board)) {
                     makeMove(x, y, targetx, targety, board);
-                    if (checkKing(currentColor, board)) {
+                    if(isSafe(kx, ky, currentColor, board)){
                         backup();
                         return true;
                     } else {
@@ -207,20 +213,25 @@ public class Board {
         }
     }
 
+
     // checks for valid moves
     public boolean canMove(int color) {
-        int[] xy = findKing(color, board);
-        if (kingEscape(xy[0], xy[1], color)) {
+        int x = kings.getX(color);
+        int y = kings.getY(color);
+
+        if(kingEscape(x,y,color)){
             return true;
-        } else if (canBlock(color)) {
+        } else if (canBlock(color)){
             return true;
         }
-        //System.out.println("you cannot move right now");
+
+
         return false;
     }
 
     // The AI has already vetted its move so checking again would be redundant
     public void AIMove(int x, int y, int targetx, int targety, int currentColor) {
+
         if (board[x][y].getType() == 'k') {
             if (x == 4) {
                 if (targetx == 7) {
@@ -237,71 +248,123 @@ public class Board {
                     }
                 }
             }
+            kings.move(targetx,targety,currentColor);
         }
 
         board[targetx][targety].setPiece(board[x][y]);
         board[x][y].clearSpace();
 
         if(board[targetx][targety].getType() == 'p'){ // The AI will always give itself more queens
-            promote(x, y, currentColor, board);
+            if((currentColor == 1 && targety == 7) || (currentColor == 2 && targety == 0)) {
+                board[targetx][targety].setType('q');
+                board[targetx][targety].setId("Q");
+            }
         }
-
-
         backup();
     }
 
     //--public statics--
 
     // validates AI input as the AI won't enter in index out of bounds errors
-    public static boolean AICheck(int x, int y, int targetx, int targety, int currentColor, Space[][] board) {
+    // public static ScoreHolder AICheck(int x, int y, int targetx, int targety, int currentColor, Space[][] board){
+    public static ScoreHolder AICheck(int x, int y, int targetx, int targety, int currentColor, Space[][] board){
+        ScoreHolder scoreHolder;
+        boolean valid = false;
+        Space temp1 = new Space(board[x][y]);
+        Space temp2 = new Space(board[targetx][targety]);
         if (board[x][y].getType() == 'k') {
-            if (moveKing(x, y, targetx, targety, currentColor, board)) {
+            if (moveKingAI(x, y, targetx, targety, currentColor, board)) {
                 makeMove(x, y, targetx, targety, board);
-                return true; // can not inadvertently put a king in check while moving the king
+                valid = true;
+            }if (x == 4) {
+                if ((currentColor == 1 && y == 0 && targety == 0) || (currentColor == 2 && y == 7 && targety == 7)){
+                    if(targetx == 7 && canCastle(currentColor, board)){
+                        if (currentColor == 1) {
+                            board[5][0].setPiece("R", 'r', 1);
+                        } else {
+                            board[5][7].setPiece("R", 'r', 2);
+                        }
+                        makeMove(x, y, targetx, targety, board);
+                        scoreHolder = new ScoreHolder(board);
+                        board[x][y] = new Space(temp1);
+                        if (currentColor == 1) {
+                            board[7][0].setPiece("R", 'r', 1);
+                        } else {
+                            board[7][7].setPiece("R", 'r', 2);
+                        }
+                        return scoreHolder;
+                    } else if(targetx == 0 && canQueenCastle(currentColor, board)) {
+                        if (currentColor == 1) {
+                            board[3][0].setPiece("R", 'r', 1);
+                        } else {
+                            board[3][7].setPiece("R", 'r', 2);
+                        }
+                        makeMove(x, y, targetx, targety, board);
+                        scoreHolder = new ScoreHolder(board);
+                        board[x][y] = new Space(temp1);
+                        if (currentColor == 1) {
+                            board[0][0].setPiece("R", 'r', 1);
+                        } else {
+                            board[0][7].setPiece("R", 'r', 2);
+                        }
+                        return scoreHolder;
+                    }
+                }
             }
 
-        } else if (board[targetx][targety].getColor() == currentColor) {
-            return false;
         } else if (board[x][y].getType() == 'p') {
             if (movePawn(x, y, targetx, targety, currentColor, board)) {
                 makeMove(x, y, targetx, targety, board);
                 if (checkKing(currentColor, board)) {
-                    promote(x, y, currentColor, board);
-                    return true;
-                }
-            }
-
-        } else if (board[x][y].getType() == 'r') {
-            if (moveRook(x, y, targetx, targety, board)) {
-                makeMove(x, y, targetx, targety, board);
-                if (checkKing(currentColor, board)) {
-                    return true;
-                }
-            }
-        } else if (board[x][y].getType() == 'b') {
-            if (moveBishop(x, y, targetx, targety, board)) {
-                makeMove(x, y, targetx, targety, board);
-                if (checkKing(currentColor, board)) {
-                    return true;
+                    valid = true;
+                    if((currentColor == 1 && targety == 7) || (currentColor == 2 && targety == 0)) {// takes care of promotions
+                        board[targetx][targety].setId("Q");
+                        board[targetx][targety].setType('q');
+                    }
                 }
             }
         } else if (board[x][y].getType() == 'n') {
             if (moveKnight(x, y, targetx, targety)) {
                 makeMove(x, y, targetx, targety, board);
                 if (checkKing(currentColor, board)) {
-                    return true;
+                    valid = true;
                 }
             }
+        }else if (board[x][y].getType() == 'r') {
+            if (moveRook(x, y, targetx, targety, board)) {
+                makeMove(x, y, targetx, targety, board);
+                if (checkKing(currentColor, board)) {
+                    valid = true;
+                }
+            }
+        } else if (board[x][y].getType() == 'b') {
+            if (moveBishop(x, y, targetx, targety, board)) {
+                makeMove(x, y, targetx, targety, board);
+                if (checkKing(currentColor, board)) {
+                    valid = true;
+                }
+            }
+
         } else if (board[x][y].getType() == 'q') {
             if (moveQueen(x, y, targetx, targety, board)) {
                 makeMove(x, y, targetx, targety, board);
                 if (checkKing(currentColor, board)) {
-                    return true;
+                    valid = true;
                 }
             }
         }
-        return false;
+
+        if(valid){
+            scoreHolder = new ScoreHolder(board);
+        }  else {
+            scoreHolder = new ScoreHolder();
+        }
+        board[x][y] = new Space(temp1);
+        board[targetx][targety] = new Space(temp2);
+        return scoreHolder;
+
     }
+
 
     // utility method for getting the other players color
     public static int getOpponent(int color) {
@@ -310,36 +373,6 @@ public class Board {
         } else {
             return 1;
         }
-    }
-
-
-    public static int calcScore(Space[][] board){
-        int count = 0;
-        int multiple;
-        for(int y = 0; y < 8; y++) {
-            for (int x = 0; x < 8; x++) {
-                if (board[x][y].getColor() != 0) {
-                    if (board[x][y].getColor() == 2) { // changes the positive and negative sign;
-                        multiple = 1;
-                    } else {
-                        multiple = -1;
-                    }
-
-                    if (board[x][y].getType() == 'p') {
-                        count += multiple * 10;
-                    } else if (board[x][y].getType() == 'b' || board[x][y].getType() == 'n') {
-                        count += multiple * 30;
-                    } else if (board[x][y].getType() == 'r') {
-                        count += multiple * 50;
-                    } else if (board[x][y].getType() == 'q') {
-                        count += multiple * 90;
-                    } else if (board[x][y].getType() == 'k') {
-                        count += multiple * 900;
-                    }
-                }
-            }
-        }
-        return count;
     }
 
     //--private--
@@ -440,7 +473,7 @@ public class Board {
         }
     }
 
-    private boolean checkInput(int x, int y) {
+    private static boolean checkInput(int x, int y) {
         if (x >= 0 && x < 8 && y >= 0 && y < 8) {
             return true;
         } else {
@@ -453,7 +486,8 @@ public class Board {
         boolean result = false;
         if(moveTest(x, y , targetx, targety, color)){
             makeMove(x,y,targetx,targety,board);
-            result = checkKing(color, board);
+            result = isSafe(kings.getX(color), kings.getY(color), color, board);
+            //result = checkKing(color, board);
         }
         reset();
         return result;
@@ -724,13 +758,13 @@ public class Board {
         }
         return false;
     }
-    // method for improving AI efficiency
-    private static boolean moveKing(int x, int y, int targetx, int targety, int color, Space[][] board) {
-        if (board[targetx][targety].getColor() != color) { // checks for repeats
+
+    // I ended up castling for users here because it was simpler
+    private boolean moveKing(int x, int y, int targetx, int targety, int color) {
+        if (board[targetx][targety].getColor() != color) { // prevents the king from moving on its own piece
             if (x == targetx || x == targetx + 1 || x == targetx - 1) {
                 if (y == targety || y == targety + 1 || y == targety - 1) {
                     if (isSafe(targetx, targety, color, board)) {
-
                         return true;
                     }
                 }
@@ -747,6 +781,19 @@ public class Board {
             }
         }
         return false;
+    }
+
+    // the AI castles in a different method and does not need to check for repeats
+    private static boolean moveKingAI(int x, int y, int targetx, int targety, int color, Space[][] board){
+        if (x == targetx || x == targetx + 1 || x == targetx - 1) {
+            if (y == targety || y == targety + 1 || y == targety - 1) {
+                if (isSafe(targetx, targety, color, board)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+
     }
 
     private static boolean canQueenCastle(int color, Space[][] board) {
@@ -813,7 +860,9 @@ public class Board {
 
     // gets an x and y and looks for anything that can put the king in check;
     private static boolean isSafe(int targetx, int targety, int color, Space[][] board) {
-
+        if(targetx == -1){// prevents the king from being taken
+            return false;
+        }
         int hostile = getOpponent(color);
         int i;
         int x;
@@ -837,9 +886,7 @@ public class Board {
         }
 
         if (i >= 0 && board[i][targety].getColor() == hostile) {
-
             if (board[i][targety].getType() == 'r' || board[i][targety].getType() == 'q') {
-
                 return false;
             } else if (board[i][targety].getType() == 'k' && i == targetx - 1) {
                 return false;
@@ -976,6 +1023,7 @@ public class Board {
         return true;
     }
 
+    // checks vertically in both directions
     private static boolean checkHorizontal(int x, int targetx, int y, Space[][] board) {
         int z;
         int target;
@@ -997,6 +1045,7 @@ public class Board {
         return true;
     }
 
+    // checks horizontally in both directions
     private static boolean checkVertical(int y, int targety, int x, Space[][] board) {
         int z;
         int target;
@@ -1036,6 +1085,7 @@ public class Board {
         return x == targetx && y == targety;
     }
 
+    // Diagonal upper left
     private static boolean checkDUL(int tempx, int tempy, int targetx, int targety, Space[][] board) {
         int x = tempx - 1;
         int y = tempy - 1;
@@ -1050,6 +1100,7 @@ public class Board {
         return x == targetx && y == targety;
     }
 
+    // Diagonal
     private static boolean checkDLR(int tempx, int tempy, int targetx, int targety, Space[][] board) {
         int x = tempx + 1;
         int y = tempy + 1;
@@ -1105,14 +1156,14 @@ public class Board {
 
     }
 
-    // finds the king
+    // finds the king and currently makes sure the other king has not been outright captured
     private static int[] findKing(int color, Space[][] board){
         int[] temp = new int[2];
-        temp[0] = 0;
-        temp[1] = 0;
+        temp[0] = -1;
+        temp[1] = -1;
         for(int y = 0; y < 8; y++){
             for(int x = 0; x < 8; x++){
-                if(board[x][y].isKing(color)){
+                if(board[x][y].isKing(color)) {
                     temp[0] = x;
                     temp[1] = y;
                     return temp;
@@ -1122,41 +1173,29 @@ public class Board {
         return temp;
     }
 
-
-    // upgrades pawn
-    private static void upgrade(int x, int y, char type, Space[][] board){
+    // upgrades pawn based on input;
+    public void upgrade(int x, int y, char type){
         board[x][y].setType(type);
-        if(board[x][y].getColor() == 2){
-            if(type == 'q'){
-                board[x][y].setId("Q");
-            } else if (type == 'n') {
-                board[x][y].setId("N");
-            } else if(type == 'r'){
-                board[x][y].setId("R");
-            } else if (type == 'b') {
-                board[x][y].setId("B");
-            }
-
-        } else {
-            if(type == 'q'){
-                board[x][y].setId("q");
-            } else if (type == 'n') {
-                board[x][y].setId("n");
-            } else if(type == 'r'){
-                board[x][y].setId("r");
-            } else if (type == 'b') {
-                board[x][y].setId("b");
-            }
+        if(type == 'q'){
+            board[x][y].setId("Q");
+        } else if (type == 'n') {
+            board[x][y].setId("N");
+        } else if(type == 'r'){
+            board[x][y].setId("R");
+        } else if (type == 'b') {
+            board[x][y].setId("B");
         }
+        backup();
     }
 
-    // method for promoting pawns
-    private static void promote(int x, int y, int color, Space[][] board){ // will be expanded later
-        if((color == 1 && y == 7) || (color == 2 && y == 0)){
-            if(findQueen(color, board)) {
-                upgrade(x, y, 'q', board);
+
+    public boolean canPromote(int x, int y, int color) {
+        if(board[x][y].isPawn(color)) {
+            if ((color == 1 && y == 7) || (color == 2 && y == 0)) {
+                return true;
             }
         }
+        return false;
     }
 
     // printout for testing
@@ -1171,16 +1210,5 @@ public class Board {
         }
     }
 
-    public static boolean findQueen(int color, Space[][] board){
-
-        for(int y = 0; y < 8; y++){
-            for(int x = 0; x < 8; x++){
-                if(board[x][y].getColor() == color && board[x][y].getType() == 'q'){
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
 
 }

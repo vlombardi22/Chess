@@ -2,9 +2,9 @@
 
 public class Node {
     private boolean leaf;
-    private String coords = "";
+    private String coords;
     private String parentCoords;
-    private int score = 0;
+    private int score;
 
     // copy constructor
     public Node(Node other) {
@@ -33,8 +33,8 @@ public class Node {
     public Node(int score, boolean leaf){
         this.score = score;
         this.leaf = leaf;
-        parentCoords = "NA";
-        coords = "NA";
+        parentCoords = "9999";
+        coords = "9999";
 
     }
 
