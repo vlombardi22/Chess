@@ -437,6 +437,7 @@ public class GameManager extends JPanel implements ActionListener {
         } else if(myBoard.canMove(playerColor)) {
             label1.setText("White's turn");
             currentColor = playerColor;
+            updateLabel2(currentColor);
         } else {
             label1.setText("Black's turn");
             AIMove();
