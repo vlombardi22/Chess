@@ -203,18 +203,6 @@ public class Board {
         return board;
     }
 
-    // prints the board
-    public void printBoard() {
-        System.out.println(" |0|1|2|3|4|5|6|7|");
-        for (int y = 0; y < 8; y++) {
-            System.out.print(y);
-            for (int x = 0; x < 8; x++) {
-                System.out.print("|" + board[x][y]);
-            }
-            System.out.println("|");
-        }
-    }
-
 
     // checks for valid moves
     public boolean canMove(int color) {
@@ -226,8 +214,6 @@ public class Board {
         } else if (canBlock(color)){
             return true;
         }
-
-
         return false;
     }
 
@@ -265,7 +251,44 @@ public class Board {
         backup();
     }
 
+    // upgrades pawn based on input
+    public void upgrade(int x, int y, char type){
+        board[x][y].setType(type);
+        if(type == 'q'){
+            board[x][y].setId("Q");
+        } else if (type == 'n') {
+            board[x][y].setId("N");
+        } else if(type == 'r'){
+            board[x][y].setId("R");
+        } else if (type == 'b') {
+            board[x][y].setId("B");
+        }
+        backup();
+    }
+
+    public boolean canPromote(int x, int y, int color) {
+        if(board[x][y].isPawn(color)) {
+            if ((color == 1 && y == 7) || (color == 2 && y == 0)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     //--public statics--
+
+    // printout for testing
+    public static void printBoard(Space[][] board){
+        System.out.println(" |0|1|2|3|4|5|6|7|");
+        for (int y = 0; y < 8; y++) {
+            System.out.print(y);
+            for (int x = 0; x < 8; x++) {
+                System.out.print("|" + board[x][y]);
+            }
+            System.out.println("|");
+        }
+    }
 
     // validates AI input as the AI won't enter in index out of bounds errors
     // public static ScoreHolder AICheck(int x, int y, int targetx, int targety, int currentColor, Space[][] board){
@@ -1173,43 +1196,6 @@ public class Board {
             }
         }
         return temp;
-    }
-
-    // upgrades pawn based on input;
-    public void upgrade(int x, int y, char type){
-        board[x][y].setType(type);
-        if(type == 'q'){
-            board[x][y].setId("Q");
-        } else if (type == 'n') {
-            board[x][y].setId("N");
-        } else if(type == 'r'){
-            board[x][y].setId("R");
-        } else if (type == 'b') {
-            board[x][y].setId("B");
-        }
-        backup();
-    }
-
-
-    public boolean canPromote(int x, int y, int color) {
-        if(board[x][y].isPawn(color)) {
-            if ((color == 1 && y == 7) || (color == 2 && y == 0)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // printout for testing
-    public static void printBoard(Space[][] board){
-        System.out.println(" |0|1|2|3|4|5|6|7|");
-        for (int y = 0; y < 8; y++) {
-            System.out.print(y);
-            for (int x = 0; x < 8; x++) {
-                System.out.print("|" + board[x][y]);
-            }
-            System.out.println("|");
-        }
     }
 
 
