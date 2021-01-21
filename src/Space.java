@@ -51,27 +51,18 @@ public class Space {
 
     // simple call for checking if a piece is a rook used in castling
     public boolean isRook(int color){
-        if(type == 'r' && this.color == color){
-            return true;
-        }
-        return false;
+        return type == 'r' && this.color == color;
     }
 
 
     // simple call for if a piece is a pawn used in castling
     public boolean isPawn(int color){
-        if(type == 'p' && this.color == color){
-            return true;
-        }
-        return false;
+        return type == 'p' && this.color == color;
     }
 
     // simple call for if a piece is a king
     public boolean isKing(int color){
-        if(type == 'k' && this.color == color){
-            return true;
-        }
-        return false;
+        return type == 'k' && this.color == color;
     }
 
     // sets the piece in one call
