@@ -9,9 +9,9 @@ public class AI {
     private final int maxScore = Integer.MAX_VALUE; //2020; //1290;
     private final int minScore = Integer.MIN_VALUE; //-2020; //-1290;
     private int color;
-    private Space [][] board;
-    private int wCount;
-    private int bCount;
+    private Space [][] board; // game board object
+    private int wCount; // number of white pieces
+    private int bCount; // number of black pieces
     private int DepthBound;
 
 
@@ -54,14 +54,14 @@ public class AI {
                     }
                     count--;
                     if(count == 0){ // this is an effort to speed things up
-                        return ab(moveTree, root, minScore, maxScore, color, depthBound);
+                        //return ab(moveTree, root, minScore, maxScore, color, depthBound);
+                        return ab(moveTree, root, color, depthBound);
                     }
-
                 }
-
             }
         }
-        return ab(moveTree, root, minScore, maxScore, color, depthBound);
+        //return ab(moveTree, root, minScore, maxScore, color, depthBound);
+        return ab(moveTree, root, color, depthBound);
     }
 
     private void makeMoveDepth (Space[][] tempB, int x, int y, int targetx, int targety,  int myColor, int depth, Hashtable<String, ArrayList<Node>> moveTree, String parentCoords) {
@@ -168,28 +168,16 @@ public class AI {
         return scoreHolder.isValid();
     }
 
-    private String ab(Hashtable<String, ArrayList<Node>> graph, Node root, int alpha, int beta, int player, int depthBound) {
+    //private String ab(Hashtable<String, ArrayList<Node>> graph, Node root, int alpha, int beta, int player, int depthBound) {
+    private String ab(Hashtable<String, ArrayList<Node>> graph, Node root, int player, int depthBound) {
         Node bestMove;
 
         if (player == 2) {
-            bestMove = bestWhite(graph, root, alpha, beta, depthBound, 0);
+            //bestMove = bestWhite(graph, root, alpha, beta, depthBound, 0);
+            bestMove = bestWhite(graph, root, minScore, maxScore, depthBound, 0);
         } else {
-            bestMove = bestBlack(graph, root, alpha, beta, depthBound, 0);
-
-            if(bestMove.getCoords().equals("9999")) {
-                Board.printBoard(board);
-                /*
-                for (Node child : graph.get(root.getCoords()))
-                {
-                    System.out.println("!!!!");
-                    System.out.println(root.getScore());
-                    System.out.println(child.getScore());
-                    System.out.println(child.getCoords());
-                }
-                */
-
-            }
-
+            //bestMove = bestBlack(graph, root, alpha, beta, depthBound, 0);
+            bestMove = bestBlack(graph, root, minScore, maxScore, depthBound, 0);
         }
 
         return bestMove.getParentCoords();
@@ -230,7 +218,6 @@ public class AI {
                 return node;
             }
 
-
         } else {
             return node;
         }
@@ -251,7 +238,6 @@ public class AI {
             for (Node child : graph.get(node.getCoords())) {
                 Node v1 = bestWhite(graph, child, alpha, beta, depthBound, currDepth);
                 childless = false;
-
 
                 if (v1.getScore() <= v.getScore()) {
                     v = new Node(v1);

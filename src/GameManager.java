@@ -8,6 +8,8 @@ import static java.lang.System.exit;
 
 /**
  UI class
+ To run the game the player clicks on the piece they want to move and the space they want to move it too.
+ The original coordinates are stored in xcoord1 and ycoord1.
  */
 
 public class GameManager extends JPanel implements ActionListener {
@@ -18,8 +20,8 @@ public class GameManager extends JPanel implements ActionListener {
     private AI Hal; // the AI
     private int playerColor;
     private int currentColor;
-    private int xcoord1;
-    private int ycoord1;
+    private int xcoord1; // x coordinate of the piece you want to move
+    private int ycoord1; // y coordinate of the piece you want to move
     private Font font;
     private JButton exitButton;
     private JLabel label1;
@@ -181,7 +183,7 @@ public class GameManager extends JPanel implements ActionListener {
 
     public void AIDuel() throws InterruptedException {
         AI white = new AI(myBoard, 2, 3);
-        AI black = new AI(myBoard, 1, 3);
+        AI black = new AI(myBoard, 1, 4);
         game.setVisible(true);
 
         for(int y = 0; y < 8;y++) {
@@ -308,11 +310,13 @@ public class GameManager extends JPanel implements ActionListener {
         }
     }
 
+    // short hand for resetting piece selection
     private void reset(){
         xcoord1 = -1;
         ycoord1 = -1;
     }
 
+    // multiplayer action handler
     private void multiPlayerAction(int x, int y){
         int tempx;
         int tempy;
@@ -347,10 +351,9 @@ public class GameManager extends JPanel implements ActionListener {
             }
             reset();
         }
-
     }
 
-
+    // single player action handler
     private void singlePlayerAction(int tempx, int tempy){
         if(currentColor == playerColor) {
             if (xcoord1 == -1 && myBoard.checkPiece(tempx, tempy, playerColor)) {
@@ -395,7 +398,7 @@ public class GameManager extends JPanel implements ActionListener {
         updateLabel2(currentColor);
     }
 
-
+    // this section of code was part of singleplayer action
     private void singlePlayerHelper(){
         currentColor = Board.getOpponent(playerColor);
         reset();
@@ -412,7 +415,7 @@ public class GameManager extends JPanel implements ActionListener {
         }
     }
 
-
+    // Method for moving the AI
     private void AIMove(){
         Hal.updateBoard(myBoard);
         int x;
@@ -420,7 +423,7 @@ public class GameManager extends JPanel implements ActionListener {
         int targetx;
         int targety;
         String coords = Hal.makeMove();
-        if(coords.equals("9999")){
+        if(coords.equals("9999")){ // Part of a bug this is included for debugging
             label1.setText("White's turn AI has issues");
             currentColor = playerColor;
             return;
@@ -444,6 +447,7 @@ public class GameManager extends JPanel implements ActionListener {
         }
     }
 
+    // updates the second message
     private void updateLabel2(int color){
         if(color == 0){
             return;

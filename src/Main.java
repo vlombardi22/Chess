@@ -1,7 +1,7 @@
 import java.util.Scanner;
 
 /**
- *  main driver class
+ *  main driver class takes command line input for multiplayer single player or making the AI's fight eachother
  */
 
 // TODO list

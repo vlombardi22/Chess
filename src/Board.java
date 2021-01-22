@@ -114,8 +114,6 @@ public class Board {
         if (x == targetx && y == targety) { // prevents repeats
             return false;
         }
-        int kx = kings.getX(currentColor);
-        int ky = kings.getY(currentColor);
 
         if ((checkInput(x, y)) && (checkInput(targetx, targety))) {
             if (board[x][y].getColor() != currentColor) {
@@ -131,68 +129,31 @@ public class Board {
                 return false;
             } else if (board[x][y].getType() == 'p') {
                 if (movePawn(x, y, targetx, targety, currentColor, board)) {
-                    makeMove(x, y, targetx, targety, board);
-                    if(isSafe(kx, ky, currentColor, board)){
-                        backup();
-                        return true;
-                    } else {
-                        reset();
-                    }
-                    /*
-                    if (checkKing(currentColor, board)) {
-                        backup();
-                        return true;
-                    } else {
-                        reset();
-                    }
-                    */
+                    return moveHelper(x, y, targetx, targety, currentColor);
                 }
 
             } else if (board[x][y].getType() == 'r') {
                 if (moveRook(x, y, targetx, targety, board)) {
-                    makeMove(x, y, targetx, targety, board);
-                    if(isSafe(kx, ky, currentColor, board)){
-                        backup();
-                        return true;
-                    } else {
-                        reset();
-                    }
+                    return moveHelper(x, y, targetx, targety, currentColor);
                 }
             } else if (board[x][y].getType() == 'b') {
                 if (moveBishop(x, y, targetx, targety, board)) {
-                    makeMove(x, y, targetx, targety, board);
-                    if(isSafe(kx, ky, currentColor, board)){
-                        backup();
-                        return true;
-                    } else {
-                        reset();
-                    }
+                    return moveHelper(x, y, targetx, targety, currentColor);
                 }
             } else if (board[x][y].getType() == 'n') {
                 if (moveKnight(x, y, targetx, targety)) {
-                    makeMove(x, y, targetx, targety, board);
-                    if(isSafe(kx, ky, currentColor, board)){
-                        backup();
-                        return true;
-                    } else {
-                        reset();
-                    }
+                    return moveHelper(x, y, targetx, targety, currentColor);
                 }
             } else if (board[x][y].getType() == 'q') {
                 if (moveQueen(x, y, targetx, targety, board)) {
-                    makeMove(x, y, targetx, targety, board);
-                    if(isSafe(kx, ky, currentColor, board)){
-                        backup();
-                        return true;
-                    } else {
-                        reset();
-                    }
+                    return moveHelper(x, y, targetx, targety, currentColor);
                 }
             }
         }
         return false;
-
     }
+
+
 
     // boards getter
     public Space[][] getBoard() {
@@ -395,6 +356,21 @@ public class Board {
 
     //--private--
 
+    // checks if move is safe. If it is backup and return true. otherwise return false
+    private boolean moveHelper(int x, int y, int targetx, int targety, int currentColor){
+        int kx = kings.getX(currentColor);
+        int ky = kings.getY(currentColor);
+        makeMove(x, y, targetx, targety, board);
+        if(isSafe(kx, ky, currentColor, board)){
+            backup();
+            return true;
+        } else {
+            reset();
+            return false;
+        }
+    }
+
+
     // checks if checkmate can be prevented by a piece other than the king
     private boolean canBlock(int color) {
 
@@ -501,7 +477,6 @@ public class Board {
         if(moveTest(x, y , targetx, targety, color)){
             makeMove(x,y,targetx,targety,board);
             result = isSafe(kings.getX(color), kings.getY(color), color, board);
-            //result = checkKing(color, board);
         }
         reset();
         return result;
@@ -793,6 +768,7 @@ public class Board {
 
     }
 
+    // checks for a queen castle
     private static boolean canQueenCastle(int color, Space[][] board) {
         if (color == 1) {
             if (board[0][1].isPawn(color) && board[1][1].isPawn(color) && board[2][1].isPawn(color) && board[0][0].isRook(color)) {
@@ -849,7 +825,7 @@ public class Board {
 
     // gets an x and y and looks for anything that can put the king in check;
     private static boolean isSafe(int targetx, int targety, int color, Space[][] board) {
-        if(targetx == -1){// prevents the king from being taken
+        if(targetx == -1){ // prevents the king from being taken
             return false;
         }
         int hostile = getOpponent(color);
@@ -1057,7 +1033,7 @@ public class Board {
 
     // Diagonal upper right
     // these four look in diagonal lines between two points and return true if the current function has nothing in
-    // between them and if the line is straight;
+    // between them and if the line is straight
     private static boolean checkDUR(int tempx, int tempy, int targetx, int targety, Space[][] board) {
         int x = tempx + 1;
         int y = tempy - 1;
