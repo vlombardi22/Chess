@@ -265,7 +265,7 @@ public class Board {
 
         if (board[x][y].getType() == 'k') {
 
-            if (moveKingAI(x, y, targetx, targety, currentColor, board)) { // TODO I found the bug the king is blocking the path
+            if (moveKingAI(x, y, targetx, targety, currentColor, board)) {
 
                 makeMove(x, y, targetx, targety, board);
                 if (isSafe(targetx, targety, currentColor, board)) {
