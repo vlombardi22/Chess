@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.System.exit;
@@ -183,7 +184,7 @@ public class GameManager extends JPanel implements ActionListener {
 
     public void AIDuel() throws InterruptedException {
         AI white = new AI(myBoard, 2, 3);
-        AI black = new AI(myBoard, 1, 4);
+        AI black = new AI(myBoard, 1, 3);
         game.setVisible(true);
 
         for(int y = 0; y < 8;y++) {
@@ -194,6 +195,7 @@ public class GameManager extends JPanel implements ActionListener {
         boolean freeze = false;
         boolean checkMate = false;
         while (!checkMate) {
+
             int x;
             int y;
             int targetx;
@@ -245,7 +247,7 @@ public class GameManager extends JPanel implements ActionListener {
                 }
 
             }
-            TimeUnit.SECONDS.sleep(1);
+            //TimeUnit.SECONDS.sleep(1);
         }
 
     }

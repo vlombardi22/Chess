@@ -1,10 +1,15 @@
 import java.util.Scanner;
 
 /**
- *  main driver class takes command line input for multiplayer single player or making the AI's fight eachother
+ *  main driver class takes command line input for multiplayer single player or making the AI's fight each other
  */
 
 // TODO list
+    // increase AI layers
+    // increase depth
+    // determine why the AI does poorly beyond 3
+    // do positive negative math
+    // checkmate
     // test kings coordinates
     // improve kings coordinates
     // fix playing as black in single player
@@ -28,6 +33,7 @@ public class Main {
             myGame.AIDuel();
         }
     }
+
 
 
 }

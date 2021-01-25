@@ -13,12 +13,15 @@ public class AI {
     private int wCount; // number of white pieces
     private int bCount; // number of black pieces
     private int DepthBound;
+    private int turncounter;
+
 
 
     public AI (Board board, int color, int depthBound){
         this.board = new Space[8][8];
         this.color = color;
         DepthBound = depthBound;
+        turncounter = 0;
         wCount = 16;
         bCount = 16;
         Space[][] temp = board.getBoard();
@@ -32,6 +35,27 @@ public class AI {
     public String makeMove() {
         ArrayList<Node> moveList = new ArrayList<>();
         int depthBound = DepthBound;
+
+        if (bCount < 8 || wCount < 8) { // This block should make the AI behave a lot better
+            depthBound += 1;
+            turncounter += 1;
+            if((bCount < 6 && color == 2) || (wCount < 6 && color == 1)){
+                depthBound += 2;
+            }
+        }
+
+        if (turncounter < 32 && turncounter >= 30) { // This strategically plays with the program for better effect
+            depthBound = 2;
+        } else if (turncounter > 32 && turncounter <= 40) {
+            depthBound = 3;
+        } else if(turncounter > 40 && turncounter <= 50){
+            depthBound = 4;
+        } else if (turncounter > 50){
+            depthBound = 5;
+            turncounter = 0;
+        }
+
+
         Hashtable<String, ArrayList<Node>> moveTree = new Hashtable<>(); // tree
         Node root;
         if(color == 1){
@@ -54,13 +78,11 @@ public class AI {
                     }
                     count--;
                     if(count == 0){ // this is an effort to speed things up
-                        //return ab(moveTree, root, minScore, maxScore, color, depthBound);
                         return ab(moveTree, root, color, depthBound);
                     }
                 }
             }
         }
-        //return ab(moveTree, root, minScore, maxScore, color, depthBound);
         return ab(moveTree, root, color, depthBound);
     }
 
@@ -151,32 +173,30 @@ public class AI {
             }
         }
         ScoreHolder scoreHolder = Board.AICheck(x,y,targetx,targety,myColor,tBoard);
+
         if(scoreHolder.isValid()){
             String coords = "" + x + y + targetx + targety;
             boolean leaf = false;
             int score = scoreHolder.getScore();
+            score += Board.checkBonus(Board.getOpponent(myColor), tBoard); // extra incentive for check
             if (depth <= 0) { // takes care of leaf nodes
                 leaf = true;
             }
+
 
             Node newMove = new Node(leaf, coords, score, parentCords);
             movelist.add(newMove);
 
         }
-
-
         return scoreHolder.isValid();
     }
 
-    //private String ab(Hashtable<String, ArrayList<Node>> graph, Node root, int alpha, int beta, int player, int depthBound) {
     private String ab(Hashtable<String, ArrayList<Node>> graph, Node root, int player, int depthBound) {
         Node bestMove;
 
         if (player == 2) {
-            //bestMove = bestWhite(graph, root, alpha, beta, depthBound, 0);
             bestMove = bestWhite(graph, root, minScore, maxScore, depthBound, 0);
         } else {
-            //bestMove = bestBlack(graph, root, alpha, beta, depthBound, 0);
             bestMove = bestBlack(graph, root, minScore, maxScore, depthBound, 0);
         }
 

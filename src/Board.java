@@ -44,7 +44,7 @@ public class Board {
     private void GUISetup(){
 
         for (int i = 0; i < 8; i++) { // place pawns
-            board[i][1].setPiece("P", 'p', 1);
+            board[i][1].setPiece("p", 'p', 1);
             board[i][6].setPiece("P", 'p', 2);
         }
 
@@ -91,10 +91,24 @@ public class Board {
         return board[x][y].getColor();
     }
 
+    // prints the board
+    public void printBoard() {
+        System.out.println(" |0|1|2|3|4|5|6|7|");
+        for (int y = 0; y < 8; y++) {
+            System.out.print(y);
+            for (int x = 0; x < 8; x++) {
+                System.out.print("|" + board[x][y]);
+            }
+            System.out.println("|");
+        }
+    }
+
     // checks if color is in check
     public boolean isCheckMate(int color) {
+
         int x = kings.getX(color);
         int y = kings.getY(color);
+
         kings.clear();
 
         if(!isSafe(x, y, color, board)){
@@ -152,8 +166,6 @@ public class Board {
         }
         return false;
     }
-
-
 
     // boards getter
     public Space[][] getBoard() {
@@ -245,17 +257,24 @@ public class Board {
     }
 
     // validates AI input as the AI won't enter in index out of bounds errors
-    // public static ScoreHolder AICheck(int x, int y, int targetx, int targety, int currentColor, Space[][] board){
     public static ScoreHolder AICheck(int x, int y, int targetx, int targety, int currentColor, Space[][] board){
         ScoreHolder scoreHolder;
         boolean valid = false;
         Space temp1 = new Space(board[x][y]);
         Space temp2 = new Space(board[targetx][targety]);
+
         if (board[x][y].getType() == 'k') {
-            if (moveKingAI(x, y, targetx, targety, currentColor, board)) {
+
+            if (moveKingAI(x, y, targetx, targety, currentColor, board)) { // TODO I found the bug the king is blocking the path
+
                 makeMove(x, y, targetx, targety, board);
-                valid = true;
-            }if (x == 4) {
+                if (isSafe(targetx, targety, currentColor, board)) {
+                    valid = true;
+                }
+            }
+
+
+            if (x == 4) {
                 if ((currentColor == 1 && y == 0 && targety == 0) || (currentColor == 2 && y == 7 && targety == 7)){
                     if(targetx == 7 && canCastle(currentColor, board)){
                         if (currentColor == 1) {
@@ -333,17 +352,32 @@ public class Board {
             }
         }
 
+
         if(valid){
             scoreHolder = new ScoreHolder(board);
         }  else {
+
             scoreHolder = new ScoreHolder();
         }
         board[x][y] = new Space(temp1);
         board[targetx][targety] = new Space(temp2);
         return scoreHolder;
-
     }
 
+    // returns a bonus score
+    public static int checkBonus(int color, Space[][] board){
+        int[] xy = findKing(color, board);
+        if (!isSafe(xy[0], xy[1], color, board)) {
+            if (color == 1) {
+                return 70;
+            } else {
+                return -70;
+            }
+        } else {
+            return 0;
+        }
+
+    }
 
     // utility method for getting the other players color
     public static int getOpponent(int color) {
@@ -759,13 +793,15 @@ public class Board {
 
     // the AI castles in a different method and does not need to check for repeats
     private static boolean moveKingAI(int x, int y, int targetx, int targety, int color, Space[][] board){
+
+
         if (x == targetx || x == targetx + 1 || x == targetx - 1) {
             if (y == targety || y == targety + 1 || y == targety - 1) {
-                return isSafe(targetx, targety, color, board);
+                return true;
+                // return isSafe(targetx, targety, color, board);
             }
         }
         return false;
-
     }
 
     // checks for a queen castle
@@ -810,7 +846,6 @@ public class Board {
             }
         }
         return false;
-
     }
 
     private static boolean moveRook(int x, int y, int targetx, int targety, Space[][] board) {
@@ -825,6 +860,7 @@ public class Board {
 
     // gets an x and y and looks for anything that can put the king in check;
     private static boolean isSafe(int targetx, int targety, int color, Space[][] board) {
+
         if(targetx == -1){ // prevents the king from being taken
             return false;
         }
@@ -851,6 +887,7 @@ public class Board {
         }
 
         if (i >= 0 && board[i][targety].getColor() == hostile) {
+
             if (board[i][targety].getType() == 'r' || board[i][targety].getType() == 'q') {
                 return false;
             } else if (board[i][targety].getType() == 'k' && i == targetx - 1) {
