@@ -79,7 +79,7 @@ public class Board {
         return true;
     }
 
-    public boolean isCheck(int color){ // TODO improve this
+    public boolean isCheck(int color){
         return kings.isCheck(color);
     }
 
