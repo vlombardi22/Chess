@@ -264,15 +264,14 @@ public class Board {
         Space temp2 = new Space(board[targetx][targety]);
 
         if (board[x][y].getType() == 'k') {
-
-            if (moveKingAI(x, y, targetx, targety, currentColor, board)) {
-
-                makeMove(x, y, targetx, targety, board);
-                if (isSafe(targetx, targety, currentColor, board)) {
-                    valid = true;
+            if (x == targetx || x == targetx + 1 || x == targetx - 1) {
+                if (y == targety || y == targety + 1 || y == targety - 1) {
+                    makeMove(x, y, targetx, targety, board);
+                    if (isSafe(targetx, targety, currentColor, board)) {
+                        valid = true;
+                    }
                 }
             }
-
 
             if (x == 4) {
                 if ((currentColor == 1 && y == 0 && targety == 0) || (currentColor == 2 && y == 7 && targety == 7)){
@@ -786,19 +785,6 @@ public class Board {
                     queenCastle(color, board);
                     return true;
                 }
-            }
-        }
-        return false;
-    }
-
-    // the AI castles in a different method and does not need to check for repeats
-    private static boolean moveKingAI(int x, int y, int targetx, int targety, int color, Space[][] board){
-
-
-        if (x == targetx || x == targetx + 1 || x == targetx - 1) {
-            if (y == targety || y == targety + 1 || y == targety - 1) {
-                return true;
-                // return isSafe(targetx, targety, color, board);
             }
         }
         return false;
