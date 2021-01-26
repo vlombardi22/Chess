@@ -2,6 +2,7 @@
  This class acts as a wrapper that holds a score and a boolean
  The score represents the possible score for a move while the boolean represents if it is a valid move
  This class dramatically improves the efficiency of the AI algorithm by preventing boards from being generated for most invalid moves
+ The scoring for pawns and the king changes halfway through the game to reward turning pawns into Queens while protecting the king.
  */
 public class ScoreHolder {
     private int score;
@@ -15,6 +16,16 @@ public class ScoreHolder {
                                     {5, -5,-10,  0,  0,-10, -5,  5},
                                     {5, 10, 10,-20,-20, 10, 10,  5},
                                     {0,  0,  0,  0,  0,  0,  0,  0}};
+
+    private static int[][] EPawn =  {{880,  890,  890,  895,  895,  890, 890, 880},
+                                    {90, 90, 90, 90, 90, 90, 90, 90},
+                                    {85, 85, 85, 85, 85, 85, 85, 85},
+                                    {80, 80, 80, 80, 80, 80, 80, 80},
+                                    {0,  0,  0, 20, 20,  0,  0,  0},
+                                    {5, -5,-10,  0,  0,-10, -5,  5},
+                                    {5, 10, 10,-20,-20, 10, 10,  5},
+                                    {0,  0,  0,  0,  0,  0,  0,  0}};
+
 
     private static int[][] Knight ={{-50,-40,-30,-30,-30,-30,-40,-50},
                                     {-40,-20,  0,  0,  0,  0,-20,-40},
@@ -41,7 +52,7 @@ public class ScoreHolder {
                                     {-5,  0,  0,  0,  0,  0,  0, -5},
                                     {-5,  0,  0,  0,  0,  0,  0, -5},
                                     {-5,  0,  0,  0,  0,  0,  0, -5},
-                                    {0,  0,  0,  5,  5,  0,  0,  0}};
+                                    {-5,  0,  0,  5,  5,  0,  0,  -5}};
 
     private static int[][] Queen = {{-20,-10,-10, -5, -5,-10,-10,-20},
                                     {-10,  0,  0,  0,  0,  0,  0,-10},
@@ -91,11 +102,15 @@ public class ScoreHolder {
         return valid;
     }
 
-    public static int calcScore(Space[][] board){
+    private static int calcScore(Space[][] board){
         int count = 0;
         int wcount = 0;
         int bcount = 0;
         int multiple;
+        int pwscore = 0; // pawn score
+        int pwescore = 0; // pawn end score
+        int pbscore = 0; // pawn score
+        int pbescore = 0; // pawn end score
         int wx = -1;
         int wy = -1;
         int bx = -1;
@@ -115,10 +130,13 @@ public class ScoreHolder {
                     if (board[x][y].getType() == 'p') {
                         count += multiple * 100; // 10
                         if (multiple == 1) {
-                            count += Pawn[y][x];
-
+                            //count += Pawn[y][x];
+                            pwscore += Pawn[y][x];
+                            pwescore += EPawn[y][x];
                         } else {
-                            count += -1 * Pawn[7 - y][x];
+                            //count += -1 * Pawn[7 - y][x];
+                            pbscore += -1 * Pawn[7 - y][x];
+                            pbescore += -1 * EPawn[7 - y][x];
                         }
                     } else if (board[x][y].getType() == 'b') {
 
@@ -184,8 +202,22 @@ public class ScoreHolder {
             }
         }
 
+        if(wcount < 8){
+            count += pbescore;
+        } else {
+            count += pbscore;
+        }
+
+        if(bcount < 8){
+            count += pwescore;
+        } else {
+            count += pwscore;
+        }
+
         count += Board.checkBonus(1,board);
         count += Board.checkBonus(2,board);
+
+
 
         return count;
 

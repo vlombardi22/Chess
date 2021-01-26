@@ -13,7 +13,6 @@ public class AI {
     private int wCount; // number of white pieces
     private int bCount; // number of black pieces
     private int DepthBound;
-    private int turncounter;
 
 
 
@@ -21,7 +20,6 @@ public class AI {
         this.board = new Space[8][8];
         this.color = color;
         DepthBound = depthBound;
-        turncounter = 0;
         wCount = 16;
         bCount = 16;
         Space[][] temp = board.getBoard();
@@ -37,24 +35,11 @@ public class AI {
         int depthBound = DepthBound;
 
         if (bCount < 8 || wCount < 8) { // increase depth bound near end of the game to improve checkmate ability
-            depthBound += 1;
-            turncounter += 1;
-            if((bCount < 6 && color == 2) || (wCount < 6 && color == 1)){
-                depthBound += 2;
+            depthBound += 2;
+            if((bCount < 7 && color == 2) || (wCount < 7 && color == 1)){
+                depthBound += 1;
             }
         }
-
-        if (turncounter < 32 && turncounter >= 30) { // the idea here is to break up stalemates this is a temporary fix
-            depthBound = 2;
-        } else if (turncounter > 32 && turncounter <= 40) {
-            depthBound = 3;
-        } else if(turncounter > 40 && turncounter <= 50){
-            depthBound = 4;
-        } else if (turncounter > 50){
-            depthBound = 5;
-            turncounter = 0;
-        }
-
 
         Hashtable<String, ArrayList<Node>> moveTree = new Hashtable<>(); // tree
         Node root;
@@ -122,6 +107,7 @@ public class AI {
         }
     }
 
+    // updates AI board
     public void updateBoard(Board board) {
         Space[][] temp = board.getBoard();
         wCount = board.getwCount();

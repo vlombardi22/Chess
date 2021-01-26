@@ -23,25 +23,6 @@ public class Board {
                 oldBoard[x][y] = new Space("" + x + y);
             }
         }
-        GUISetup();
-        backup();
-    }
-
-    public int getbCount() { return bCount; }
-
-    public void setbCount(int bCount) {
-        this.bCount = bCount;
-    }
-
-    public int getwCount() {
-        return wCount;
-    }
-
-    public void setwCount(int wCount) {
-        this.wCount = wCount;
-    }
-
-    private void GUISetup(){
 
         for (int i = 0; i < 8; i++) { // place pawns
             board[i][1].setPiece("p", 'p', 1);
@@ -68,9 +49,29 @@ public class Board {
         board[7][7].setPiece("R", 'r', 2);
         board[0][0].setPiece("R", 'r', 1);
         board[7][0].setPiece("R", 'r', 1);
+        backup();
+    }
+
+    // returns number of black pieces
+    public int getbCount() { return bCount; }
+
+    // sets number of black pieces
+    public void setbCount(int bCount) {
+        this.bCount = bCount;
+    }
+
+    // gets number of white pieces
+    public int getwCount() {
+        return wCount;
+    }
+
+    // sets number of white pieces
+    public void setwCount(int wCount) {
+        this.wCount = wCount;
     }
 
     // --public--
+
     // prints the selected piece
     public boolean checkPiece(int x, int y, int color) {
         if (checkInput(x, y)) {
@@ -79,10 +80,12 @@ public class Board {
         return true;
     }
 
+    // quickly returns if the king is in check
     public boolean isCheck(int color){
         return kings.isCheck(color);
     }
 
+    // returns id
     public String idHelper(int x, int y){
         return board[x][y].getId();
     }
@@ -105,7 +108,6 @@ public class Board {
 
     // checks if color is in check
     public boolean isCheckMate(int color) {
-
         int x = kings.getX(color);
         int y = kings.getY(color);
 
@@ -113,10 +115,10 @@ public class Board {
 
         if(!isSafe(x, y, color, board)){
             kings.setCheck(true, color);
-            if (kingEscape(x, y, color)) {
+            if (kingEscape(x, y, color, board)) {
                 return false;
             } else {
-                return !canBlock(color);
+                return !canBlock(color, board, x, y);
             }
         } else {
             return false;
@@ -172,16 +174,15 @@ public class Board {
         return board;
     }
 
-
     // checks for valid moves
     public boolean canMove(int color) {
         int x = kings.getX(color);
         int y = kings.getY(color);
 
-        if(kingEscape(x,y,color)){
+        if(kingEscape(x,y,color,board)){
             return true;
         } else {
-            return canBlock(color);
+            return canBlock(color, board, x, y);
         }
     }
 
@@ -240,7 +241,6 @@ public class Board {
         }
         return false;
     }
-
 
     //--public statics--
 
@@ -363,20 +363,27 @@ public class Board {
         return scoreHolder;
     }
 
-    // returns a bonus score
+    // rewards points for getting an opponent in check or checkmate
     public static int checkBonus(int color, Space[][] board){
         int[] xy = findKing(color, board);
         if (!isSafe(xy[0], xy[1], color, board)) {
-            if (color == 1) {
-                return 70;
+            if (isCheckMate(color, board, xy[0], xy[1])){
+                if (color == 1) {
+                    return 4000;
+                } else {
+                    return -4000;
+                }
             } else {
-                return -70;
+                if (color == 1) {
+                    return 70;
+                } else {
+                    return -70;
+                }
             }
         } else {
             return 0;
         }
     }
-
 
     // utility method for getting the other players color
     public static int getOpponent(int color) {
@@ -403,42 +410,8 @@ public class Board {
         }
     }
 
-
-    // checks if checkmate can be prevented by a piece other than the king
-    private boolean canBlock(int color) {
-
-        for (int x = 0; x < 8; x++) {
-            for (int y = 0; y < 8; y++) {
-                if (board[x][y].getColor() == color) {
-                    if (board[x][y].getType() == 'q') {
-                        if (scanStraight(x, y, color) || scanDiagonal(x, y, color)) {
-                            return true;
-                        }
-                    } else if (board[x][y].getType() == 'b') {
-                        if (scanDiagonal(x, y, color)) {
-                            return true;
-                        }
-                    } else if (board[x][y].getType() == 'r') {
-                        if (scanStraight(x, y, color)) {
-                            return true;
-                        }
-                    } else if (board[x][y].getType() == 'n') {
-                        if (scanKnight(x, y, color)) {
-                            return true;
-                        }
-                    } else if (board[x][y].getType() == 'p') {
-                        if (scanPawn(x, y, color)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
     // checks if a possible move will save the king
-    private boolean moveTest(int x, int y, int targetx, int targety, int currentColor) {
+    private static boolean moveTest(int x, int y, int targetx, int targety, int currentColor, Space[][] board) {
         if (x == targetx && y == targety) { // prevents repeats
             return false;
         } else if (board[targetx][targety].getColor() == currentColor) {
@@ -458,7 +431,7 @@ public class Board {
     }
 
     // checks if the king can escape
-    private boolean kingEscape(int x, int y, int color) {
+    private static boolean kingEscape(int x, int y, int color, Space[][] board) {
         for (int b = -1; b < 2; b++) {
             for (int a = -1; a < 2; a++) {
                 if (checkInput(x + a, y + b)) {
@@ -504,220 +477,8 @@ public class Board {
         return x >= 0 && x < 8 && y >= 0 && y < 8;
     }
 
-    // this little segment of code was repetitive
-    private boolean scanHelper(int x, int y, int targetx, int targety, int color) {
-        boolean result = false;
-        if(moveTest(x, y , targetx, targety, color)){
-            makeMove(x,y,targetx,targety,board);
-            result = isSafe(kings.getX(color), kings.getY(color), color, board);
-        }
-        reset();
-        return result;
-    }
-
-    private boolean scanStraight(int targetx, int targety, int color) {
-        int hostile = getOpponent(color);
-        int i;
-        // vertical horizontal
-        i = targetx + 1;
-        while (i < 8 && board[i][targety].getColor() != color) {
-            if (scanHelper(targetx, targety, i, targety, color)) {
-                return true;
-            } else if (board[i][targety].getColor() == hostile) {
-                break;
-            }
-            i++;
-        }
-
-        i = targetx - 1;
-        while (i >= 0 && board[i][targety].getColor() != color) {
-            if (scanHelper(targetx, targety, i, targety, color)) {
-                return true;
-            } else if (board[i][targety].getColor() == hostile) {
-                break;
-            }
-            i--;
-        }
-
-        i = targety + 1;
-        while (i < 8 && board[targetx][i].getColor() != color) {
-            if (scanHelper(targetx, targety, targetx, i, color)) {
-                return true;
-            } else if (board[targetx][i].getColor() == hostile) {
-                break;
-            }
-            i++;
-        }
-        i = targety - 1;
-
-        while (i >= 0 && board[targetx][i].getColor() != color) {
-            if (scanHelper(targetx, targety, targetx, i, color)) {
-                return true;
-            } else if (board[targetx][i].getColor() == hostile) {
-                break;
-            }
-            i--;
-        }
-        return false;
-    }
-
-    private boolean scanDiagonal(int targetx, int targety, int color) {
-        int hostile = getOpponent(color);
-
-        // diagonals
-        int x = targetx + 1;
-        int y = targety + 1;
-
-        while (x < 8 && y < 8 && board[x][y].getColor() != color) {
-            if (scanHelper(targetx, targety, x, y, color)) {
-                return true;
-            } else if (board[x][y].getColor() == hostile) {
-                break;
-            }
-            x++;
-            y++;
-        }
-
-        x = targetx - 1;
-        y = targety - 1;
-
-        while (x >= 0 && y >= 0 && board[x][y].getColor() != color) {
-            if (scanHelper(targetx, targety, x, y, color)) {
-                return true;
-            } else if (board[x][y].getColor() == hostile) {
-                break;
-            }
-            x--;
-            y--;
-        }
-
-
-        x = targetx + 1;
-        y = targety - 1;
-
-        while (x < 8 && y >= 0 && board[x][y].getColor() != color) {
-            if (scanHelper(targetx, targety, x, y, color)) {
-                return true;
-            } else if (board[x][y].getColor() == hostile) {
-                break;
-            }
-            x++;
-            y--;
-        }
-
-
-        x = targetx - 1;
-        y = targety + 1;
-
-        while (x >= 0 && y < 8 && board[x][y].getColor() != color) {
-            if (scanHelper(targetx, targety, x, y, color)) {
-                return true;
-            } else if (board[x][y].getColor() == hostile) {
-                break;
-            }
-            x--;
-            y++;
-        }
-        return false;
-    }
-
-    private boolean scanKnight(int targetx, int targety, int color) {
-
-        if (targetx + 2 < 8) {
-            if (targety + 1 < 8 && board[targetx + 2][targety + 1].getColor() != color) {
-                if (scanHelper(targetx, targety, targetx + 2, targety + 1, color)) {
-                    return true;
-                }
-            }
-            if (targety - 1 >= 0 && board[targetx + 2][targety - 1].getColor() != color) {
-                if (scanHelper(targetx, targety, targetx + 2, targety - 1, color)) {
-                    return true;
-                }
-            }
-        }
-
-        if (targetx - 2 > 0) {
-            if (targety + 1 < 8 && board[targetx - 2][targety + 1].getColor() != color) {
-                if (scanHelper(targetx, targety, targetx - 2, targety + 1, color)) {
-                    return true;
-                }
-            }
-            if (targety - 1 >= 0 && board[targetx - 2][targety - 1].getColor() != color) {
-                if (scanHelper(targetx, targety, targetx - 2, targety - 1, color)) {
-                    return true;
-                }
-            }
-        }
-
-        if (targetx + 1 < 8) {
-            if (targety + 2 < 8 && board[targetx + 1][targety + 2].getColor() != color) {
-                if (scanHelper(targetx, targety, targetx + 1, targety + 2, color)) {
-                    return true;
-                }
-            }
-            if (targety - 2 >= 0 && board[targetx + 1][targety - 2].getColor() != color) {
-                if (scanHelper(targetx, targety, targetx + 1, targety - 2, color)) {
-                    return true;
-                }
-            }
-        }
-
-        if (targetx - 1 > 0) {
-            if (targety + 2 < 8 && board[targetx - 1][targety + 2].getColor() != color) {
-                if (scanHelper(targetx, targety, targetx - 1, targety + 2, color)) {
-                    return true;
-                }
-            }
-            if (targety - 2 >= 0 && board[targetx - 1][targety - 2].getColor() != color) {
-                return scanHelper(targetx, targety, targetx - 1, targety - 2, color);
-            }
-        }
-        return false;
-    }
-
-    private boolean scanPawn(int x, int y, int color) {
-        int hostile;
-        int i;
-        if (color == 1) {
-            hostile = 2;
-            i = 1;
-        } else {
-            hostile = 1;
-            i = -1;
-        }
-
-        if((color == 1 && y < 7) || (color == 2 && y > 0)){
-            if (board[x][y + i].getColor() == 0) {
-                if (scanHelper(x, y, x, y + i, color)) {
-                    return true;
-                }
-            }
-
-            if (x > 0 && board[x - 1][y + i].getColor() == hostile) {
-                if (scanHelper(x, y, x - 1, y + i, color)) {
-                    return true;
-                }
-            }
-
-            if (x < 7 && board[x + 1][y + i].getColor() == hostile) {
-                if (scanHelper(x, y, x + 1, y + i, color)) {
-                    return true;
-                }
-            }
-            if ((color == 1 && y == 1)) { // prevents index out of bounds
-                if ((board[x][2].getColor() == 0 && board[x][3].getColor() == 0)) {
-                    return scanHelper(x, y, x, y + 2, color);
-                }
-            } else if (color == 2 && y == 6) {
-                if ((board[x][5].getColor() == 0 && board[x][4].getColor() == 0)) {
-                    return scanHelper(x, y, x, y - 2, color);
-                }
-            }
-        }
-        return false;
-    }
-
     //--private statics--
+    // checks if the king is safe
     private static boolean checkKing(int color, Space[][] board){
         int[] xy = findKing(color, board);
         return isSafe(xy[0], xy[1], color, board);
@@ -729,6 +490,7 @@ public class Board {
         board[x][y].clearSpace();
     }
 
+    // checks if knight move is valid
     private static boolean moveKnight(int x, int y, int targetx, int targety) {
         if (targetx == (x - 2) || targetx == (x + 2)) {
             return targety == (y - 1) || targety == (y + 1);
@@ -738,6 +500,7 @@ public class Board {
         return false;
     }
 
+    // checks if queen move is valid
     private static boolean moveQueen(int x, int y, int targetx, int targety, Space[][] board) {
         if (targetx == x) {
             return checkVertical(y, targety, x, board);
@@ -755,6 +518,7 @@ public class Board {
         }
     }
 
+    // checks if bishop move is valid
     private static boolean moveBishop(int x, int y, int targetx, int targety, Space[][] board) {
         if (x < targetx && y < targety) {
             return checkDLR(x, y, targetx, targety, board);
@@ -804,6 +568,7 @@ public class Board {
         return false;
     }
 
+    // checks if queen move is valid
     private static void queenCastle(int color, Space[][] board) {
         if (color == 1) {
             board[3][0].setPiece("R", 'r', 1);
@@ -821,6 +586,7 @@ public class Board {
         }
     }
 
+    // checks if you can castle
     private static boolean canCastle(int color, Space[][] board) {
         if (color == 1) {
             if (board[5][1].isPawn(color) && board[6][1].isPawn(color) && board[7][1].isPawn(color) && board[7][0].isRook(color)) {
@@ -834,6 +600,7 @@ public class Board {
         return false;
     }
 
+    // checks if you can move the rook
     private static boolean moveRook(int x, int y, int targetx, int targety, Space[][] board) {
         if (targetx == x) {
             return checkVertical(y, targety, x, board);
@@ -1086,7 +853,7 @@ public class Board {
         return x == targetx && y == targety;
     }
 
-    // Diagonal
+    // Diagonal lower right
     private static boolean checkDLR(int tempx, int tempy, int targetx, int targety, Space[][] board) {
         int x = tempx + 1;
         int y = tempy + 1;
@@ -1101,6 +868,7 @@ public class Board {
         return x == targetx && y == targety;
     }
 
+    // Diagonal lower left
     private static boolean checkDLL(int tempx, int tempy, int targetx, int targety, Space[][] board) {
         int x = tempx - 1;
         int y = tempy + 1;
@@ -1115,7 +883,7 @@ public class Board {
         return x == targetx && y == targety;
     }
 
-    // moves pawn
+    // checks if pawn can be moved
     private static boolean movePawn(int x, int y, int targetx, int targety, int color, Space[][] board) {
         int hostile = getOpponent(color);
         if ((color == 1 && targety == (y + 1)) || (color == 2 && targety == (y - 1))) {
@@ -1151,5 +919,265 @@ public class Board {
         return temp;
     }
 
+    // AI version of is checkmate it skips checking if you are in check
+    private static boolean isCheckMate(int color, Space[][] board, int kx, int ky){
+        if (kingEscape(kx, ky, color, board)) {
+            return false;
+        } else {
+            return !canBlock(color, board, kx, ky);
+        }
+    }
+
+    // checks if checkmate can be prevented by a piece other than the king
+    private static boolean canBlock(int color, Space[][] board, int kx, int ky) {
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                if (board[x][y].getColor() == color) {
+                    if (board[x][y].getType() == 'q') {
+                        if (scanStraight(x, y, color, board, kx, ky) || scanDiagonal(x, y, color, board, kx, ky)) {
+                            return true;
+                        }
+                    } else if (board[x][y].getType() == 'b') {
+                        if (scanDiagonal(x, y, color, board, kx, ky)) {
+                            return true;
+                        }
+                    } else if (board[x][y].getType() == 'r') {
+                        if (scanStraight(x, y, color, board, kx, ky)) {
+                            return true;
+                        }
+                    } else if (board[x][y].getType() == 'n') {
+                        if (scanKnight(x, y, color, board, kx, ky)) {
+                            return true;
+                        }
+                    } else if (board[x][y].getType() == 'p') {
+                        if (scanPawn(x, y, color, board, kx, ky)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    // this little segment of code was repetitive
+    private static boolean scanHelper(int x, int y, int targetx, int targety, int color, Space[][] board, int kx, int ky) { // bookmark
+        boolean result = false;
+        Space temp1 = new Space(board[x][y]);
+        Space temp2 = new Space(board[targetx][targety]);
+        if(moveTest(x, y, targetx, targety, color, board)){
+            makeMove(x,y,targetx,targety, board);
+            result = isSafe(kx, ky, color, board);
+        }
+        board[x][y] = temp1;
+        board[targetx][targety] = temp2;
+        return result;
+    }
+
+    // scan methods look for pieces of a specified color that might be able to block a checkmate this looks vertically and horizontally
+    private static boolean scanStraight(int targetx, int targety, int color, Space[][] board, int kx, int ky) {
+        int hostile = getOpponent(color);
+        int i;
+        // vertical horizontal
+        i = targetx + 1;
+        while (i < 8 && board[i][targety].getColor() != color) {
+            if (scanHelper(targetx, targety, i, targety, color, board, kx, ky)) {
+                return true;
+            } else if (board[i][targety].getColor() == hostile) {
+                break;
+            }
+            i++;
+        }
+
+        i = targetx - 1;
+        while (i >= 0 && board[i][targety].getColor() != color) {
+            if (scanHelper(targetx, targety, i, targety, color, board, kx, ky)) {
+                return true;
+            } else if (board[i][targety].getColor() == hostile) {
+                break;
+            }
+            i--;
+        }
+
+        i = targety + 1;
+        while (i < 8 && board[targetx][i].getColor() != color) {
+            if (scanHelper(targetx, targety, targetx, i, color, board, kx, ky)) {
+                return true;
+            } else if (board[targetx][i].getColor() == hostile) {
+                break;
+            }
+            i++;
+        }
+        i = targety - 1;
+
+        while (i >= 0 && board[targetx][i].getColor() != color) {
+            if (scanHelper(targetx, targety, targetx, i, color, board, kx, ky)) {
+                return true;
+            } else if (board[targetx][i].getColor() == hostile) {
+                break;
+            }
+            i--;
+        }
+        return false;
+    }
+
+    // scan methods look for pieces of a specified color that might be able to block a checkmate this looks for pieces diagonally
+    private static boolean scanDiagonal(int targetx, int targety, int color, Space[][] board, int kx, int ky) {
+        int hostile = getOpponent(color);
+
+        // diagonals
+        int x = targetx + 1;
+        int y = targety + 1;
+
+        while (x < 8 && y < 8 && board[x][y].getColor() != color) {
+            if (scanHelper(targetx, targety, x, y, color, board, kx, ky)) {
+                return true;
+            } else if (board[x][y].getColor() == hostile) {
+                break;
+            }
+            x++;
+            y++;
+        }
+
+        x = targetx - 1;
+        y = targety - 1;
+
+        while (x >= 0 && y >= 0 && board[x][y].getColor() != color) {
+            if (scanHelper(targetx, targety, x, y, color, board, kx, ky)) {
+                return true;
+            } else if (board[x][y].getColor() == hostile) {
+                break;
+            }
+            x--;
+            y--;
+        }
+
+
+        x = targetx + 1;
+        y = targety - 1;
+
+        while (x < 8 && y >= 0 && board[x][y].getColor() != color) {
+            if (scanHelper(targetx, targety, x, y, color, board, kx, ky)) {
+                return true;
+            } else if (board[x][y].getColor() == hostile) {
+                break;
+            }
+            x++;
+            y--;
+        }
+
+
+        x = targetx - 1;
+        y = targety + 1;
+
+        while (x >= 0 && y < 8 && board[x][y].getColor() != color) {
+            if (scanHelper(targetx, targety, x, y, color, board, kx, ky)) {
+                return true;
+            } else if (board[x][y].getColor() == hostile) {
+                break;
+            }
+            x--;
+            y++;
+        }
+        return false;
+    }
+
+    // scan methods look for pieces of a specified color that might be able to block a checkmate This looks for knights
+    private static boolean scanKnight(int targetx, int targety, int color, Space[][] board, int kx, int ky) {
+
+        if (targetx + 2 < 8) {
+            if (targety + 1 < 8 && board[targetx + 2][targety + 1].getColor() != color) {
+                if (scanHelper(targetx, targety, targetx + 2, targety + 1, color, board, kx, ky)) {
+                    return true;
+                }
+            }
+            if (targety - 1 >= 0 && board[targetx + 2][targety - 1].getColor() != color) {
+                if (scanHelper(targetx, targety, targetx + 2, targety - 1, color, board, kx, ky)) {
+                    return true;
+                }
+            }
+        }
+
+        if (targetx - 2 > 0) {
+            if (targety + 1 < 8 && board[targetx - 2][targety + 1].getColor() != color) {
+                if (scanHelper(targetx, targety, targetx - 2, targety + 1, color, board, kx, ky)) {
+                    return true;
+                }
+            }
+            if (targety - 1 >= 0 && board[targetx - 2][targety - 1].getColor() != color) {
+                if (scanHelper(targetx, targety, targetx - 2, targety - 1, color, board, kx, ky)) {
+                    return true;
+                }
+            }
+        }
+
+        if (targetx + 1 < 8) {
+            if (targety + 2 < 8 && board[targetx + 1][targety + 2].getColor() != color) {
+                if (scanHelper(targetx, targety, targetx + 1, targety + 2, color, board, kx, ky)) {
+                    return true;
+                }
+            }
+            if (targety - 2 >= 0 && board[targetx + 1][targety - 2].getColor() != color) {
+                if (scanHelper(targetx, targety, targetx + 1, targety - 2, color, board, kx, ky)) {
+                    return true;
+                }
+            }
+        }
+
+        if (targetx - 1 > 0) {
+            if (targety + 2 < 8 && board[targetx - 1][targety + 2].getColor() != color) {
+                if (scanHelper(targetx, targety, targetx - 1, targety + 2, color, board, kx, ky)) {
+                    return true;
+                }
+            }
+            if (targety - 2 >= 0 && board[targetx - 1][targety - 2].getColor() != color) {
+                return scanHelper(targetx, targety, targetx - 1, targety - 2, color, board, kx, ky);
+            }
+        }
+        return false;
+    }
+
+    // scan methods look for pieces of a specified color that might be able to block a checkmate this looks for pawns
+    private static boolean scanPawn(int x, int y, int color, Space[][] board, int kx, int ky) {
+        int hostile;
+        int i;
+        if (color == 1) {
+            hostile = 2;
+            i = 1;
+        } else {
+            hostile = 1;
+            i = -1;
+        }
+
+        if((color == 1 && y < 7) || (color == 2 && y > 0)){
+            if (board[x][y + i].getColor() == 0) {
+                if (scanHelper(x, y, x, y + i, color, board, kx, ky)) {
+                    return true;
+                }
+            }
+
+            if (x > 0 && board[x - 1][y + i].getColor() == hostile) {
+                if (scanHelper(x, y, x - 1, y + i, color, board, kx, ky)) {
+                    return true;
+                }
+            }
+
+            if (x < 7 && board[x + 1][y + i].getColor() == hostile) {
+                if (scanHelper(x, y, x + 1, y + i, color, board, kx, ky)) {
+                    return true;
+                }
+            }
+            if ((color == 1 && y == 1)) { // prevents index out of bounds
+                if ((board[x][2].getColor() == 0 && board[x][3].getColor() == 0)) {
+                    return scanHelper(x, y, x, y + 2, color, board, kx, ky);
+                }
+            } else if (color == 2 && y == 6) {
+                if ((board[x][5].getColor() == 0 && board[x][4].getColor() == 0)) {
+                    return scanHelper(x, y, x, y - 2, color, board, kx, ky);
+                }
+            }
+        }
+        return false;
+    }
 
 }
