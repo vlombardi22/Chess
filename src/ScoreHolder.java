@@ -104,7 +104,7 @@ public class ScoreHolder {
         for(int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
                 if (board[x][y].getColor() != 0) {
-                    if (board[x][y].getColor() == 2) { // changes the positive and negative sign;
+                    if (board[x][y].getColor() == 2) { // changes the positive and negative sign
                         multiple = 1;
                         wcount++;
                     } else {
@@ -166,7 +166,6 @@ public class ScoreHolder {
                     }
                 }
             }
-
         }
 
         if(wcount < 8 || bcount < 8){ // tried to minimize the loops
@@ -184,6 +183,10 @@ public class ScoreHolder {
                 count += -1 * King[7-by][bx];
             }
         }
+
+        count += Board.checkBonus(1,board);
+        count += Board.checkBonus(2,board);
+
         return count;
 
     }

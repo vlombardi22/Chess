@@ -247,7 +247,7 @@ public class GameManager extends JPanel implements ActionListener {
                 }
 
             }
-            //TimeUnit.SECONDS.sleep(1);
+            TimeUnit.SECONDS.sleep(1);
         }
 
     }

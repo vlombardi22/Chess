@@ -6,8 +6,8 @@ This class is the AI
  */
 
 public class AI {
-    private final int maxScore = Integer.MAX_VALUE; //2020; //1290;
-    private final int minScore = Integer.MIN_VALUE; //-2020; //-1290;
+    private final int maxScore = Integer.MAX_VALUE;
+    private final int minScore = Integer.MIN_VALUE;
     private int color;
     private Space [][] board; // game board object
     private int wCount; // number of white pieces
@@ -36,7 +36,7 @@ public class AI {
         ArrayList<Node> moveList = new ArrayList<>();
         int depthBound = DepthBound;
 
-        if (bCount < 8 || wCount < 8) { // This block should make the AI behave a lot better
+        if (bCount < 8 || wCount < 8) { // increase depth bound near end of the game to improve checkmate ability
             depthBound += 1;
             turncounter += 1;
             if((bCount < 6 && color == 2) || (wCount < 6 && color == 1)){
@@ -44,7 +44,7 @@ public class AI {
             }
         }
 
-        if (turncounter < 32 && turncounter >= 30) { // This strategically plays with the program for better effect
+        if (turncounter < 32 && turncounter >= 30) { // the idea here is to break up stalemates this is a temporary fix
             depthBound = 2;
         } else if (turncounter > 32 && turncounter <= 40) {
             depthBound = 3;
@@ -106,7 +106,6 @@ public class AI {
                                 if (moveHelper(a, b, c, d, target, depth - 1, tempB, moveList, parentCoords)) {
                                     makeMoveDepth(tempB, a, b, c, d, target, depth - 1, moveTree, parentCoords);
                                 }
-
                             }
                         }
                         count--;
@@ -172,19 +171,17 @@ public class AI {
                 return false;
             }
         }
+
         ScoreHolder scoreHolder = Board.AICheck(x,y,targetx,targety,myColor,tBoard);
 
         if(scoreHolder.isValid()){
             String coords = "" + x + y + targetx + targety;
             boolean leaf = false;
-            int score = scoreHolder.getScore();
-            score += Board.checkBonus(Board.getOpponent(myColor), tBoard); // extra incentive for check
             if (depth <= 0) { // takes care of leaf nodes
                 leaf = true;
             }
 
-
-            Node newMove = new Node(leaf, coords, score, parentCords);
+            Node newMove = new Node(leaf, coords, scoreHolder.getScore(), parentCords);
             movelist.add(newMove);
 
         }
@@ -218,26 +215,19 @@ public class AI {
             for (Node child : graph.get(node.getCoords())) {
                 Node v1 = bestBlack(graph, child, alpha, beta, depthBound, currDepth);
                 childless = false;
-
                 if (v1.getScore() >= v.getScore()) {
-
                     v = new Node(v1);
                 }
-
                 if(alpha < v.getScore()){
                     alpha = v.getScore();
                 }
-
                 if(beta <= alpha){
                    return v;
                 }
-
             }
-
             if(childless){ // I think this happens when the node is not the bottom of the tree but there are no moves afterwords
                 return node;
             }
-
         } else {
             return node;
         }
@@ -258,11 +248,9 @@ public class AI {
             for (Node child : graph.get(node.getCoords())) {
                 Node v1 = bestWhite(graph, child, alpha, beta, depthBound, currDepth);
                 childless = false;
-
                 if (v1.getScore() <= v.getScore()) {
                     v = new Node(v1);
                 }
-
                 if(beta > v.getScore()){
                     beta = v.getScore();
                 }
@@ -270,11 +258,9 @@ public class AI {
                     return v;
                 }
             }
-
             if(childless){ // I think this happens when the node is not the bottom of the tree but there are no moves afterwords
                 return node;
             }
-
         } else {
             return node;
         }

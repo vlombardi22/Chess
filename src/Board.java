@@ -375,8 +375,8 @@ public class Board {
         } else {
             return 0;
         }
-
     }
+
 
     // utility method for getting the other players color
     public static int getOpponent(int color) {
