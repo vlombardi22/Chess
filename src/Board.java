@@ -11,7 +11,7 @@ public class Board {
     private int wCount;
 
 
-    // constructor;
+    // constructor
     public Board() {
         kings = new King(4,0, 4, 7);
         bCount = 16;
@@ -26,8 +26,8 @@ public class Board {
         }
 
         for (int i = 0; i < 8; i++) { // place pawns
-            board[i][1].setPiece("p", 'p', 1);
             board[i][6].setPiece("P", 'p', 2);
+            board[i][1].setPiece("P", 'p', 1);
         }
 
         board[4][7].setPiece("K", 'k', 2);
@@ -53,6 +53,8 @@ public class Board {
         backup();
     }
 
+    // --public--
+
     // returns number of black pieces
     public int getbCount() { return bCount; }
 
@@ -70,8 +72,6 @@ public class Board {
     public void setwCount(int wCount) {
         this.wCount = wCount;
     }
-
-    // --public--
 
     // prints the selected piece
     public boolean checkPiece(int x, int y, int color) {
@@ -274,9 +274,7 @@ public class Board {
                         valid = true;
                     }
                 }
-            }
-
-            if (x == 4) {
+            } else if (x == 4) {
                 if ((currentColor == 1 && y == 0 && targety == 0) || (currentColor == 2 && y == 7 && targety == 7)){
                     if(targetx == 7 && canCastle(currentColor, board)){
                         if (currentColor == 1) {
@@ -285,7 +283,7 @@ public class Board {
                             board[5][7].setPiece("R", 'r', 2);
                         }
                         makeMove(x, y, targetx, targety, board);
-                        scoreHolder = new ScoreHolder(board);
+                        scoreHolder = new ScoreHolder(board,checkBonus(board));
                         board[x][y] = new Space(temp1);
                         if (currentColor == 1) {
                             board[7][0].setPiece("R", 'r', 1);
@@ -300,7 +298,7 @@ public class Board {
                             board[3][7].setPiece("R", 'r', 2);
                         }
                         makeMove(x, y, targetx, targety, board);
-                        scoreHolder = new ScoreHolder(board);
+                        scoreHolder = new ScoreHolder(board,checkBonus(board));
                         board[x][y] = new Space(temp1);
                         if (currentColor == 1) {
                             board[0][0].setPiece("R", 'r', 1);
@@ -317,7 +315,7 @@ public class Board {
                 makeMove(x, y, targetx, targety, board);
                 if (checkKing(currentColor, board)) {
                     valid = true;
-                    if((currentColor == 1 && targety == 7) || (currentColor == 2 && targety == 0)) {// takes care of promotions
+                    if ((currentColor == 1 && targety == 7) || (currentColor == 2 && targety == 0)) { // takes care of promotions
                         board[targetx][targety].setId("Q");
                         board[targetx][targety].setType('q');
                     }
@@ -330,7 +328,7 @@ public class Board {
                     valid = true;
                 }
             }
-        }else if (board[x][y].getType() == 'r') {
+        } else if (board[x][y].getType() == 'r') {
             if (moveRook(x, y, targetx, targety, board)) {
                 makeMove(x, y, targetx, targety, board);
                 if (checkKing(currentColor, board)) {
@@ -355,9 +353,8 @@ public class Board {
         }
 
         if(valid){
-            scoreHolder = new ScoreHolder(board);
+            scoreHolder = new ScoreHolder(board,checkBonus(board));
         }  else {
-
             scoreHolder = new ScoreHolder();
         }
         board[x][y] = new Space(temp1);
@@ -365,8 +362,13 @@ public class Board {
         return scoreHolder;
     }
 
+    // checks each color for check and checkmate
+    private static int checkBonus(Space[][] board){
+        return checkBonusHelper(1, board) + checkBonusHelper(2,board);
+    }
+
     // rewards points for getting an opponent in check or checkmate
-    public static int checkBonus(int color, Space[][] board){
+    private static int checkBonusHelper(int color, Space[][] board){
         int[] xy = findKing(color, board);
         if (!isSafe(xy[0], xy[1], color, board)) {
             if (isCheckMate(color, board, xy[0], xy[1])){
@@ -430,7 +432,6 @@ public class Board {
         }
     }
 
-
     //--private statics--
 
     // checks if a possible move will save the king
@@ -453,6 +454,7 @@ public class Board {
         return false;
     }
 
+    // validates user input
     private static boolean checkInput(int x, int y) {
         return x >= 0 && x < 8 && y >= 0 && y < 8;
     }
@@ -1028,7 +1030,6 @@ public class Board {
     // scan methods look for pieces of a specified color that might be able to block a checkmate this looks for pieces diagonally
     private static boolean scanDiagonal(int targetx, int targety, int color, Space[][] board, int kx, int ky) {
         int hostile = getOpponent(color);
-
         // diagonals
         int x = targetx + 1;
         int y = targety + 1;
@@ -1088,7 +1089,6 @@ public class Board {
 
     // scan methods look for pieces of a specified color that might be able to block a checkmate This looks for knights
     private static boolean scanKnight(int targetx, int targety, int color, Space[][] board, int kx, int ky) {
-
         if (targetx + 2 < 8) {
             if (targety + 1 < 8 && board[targetx + 2][targety + 1].getColor() != color) {
                 if (scanHelper(targetx, targety, targetx + 2, targety + 1, color, board, kx, ky)) {
@@ -1101,7 +1101,6 @@ public class Board {
                 }
             }
         }
-
         if (targetx - 2 > 0) {
             if (targety + 1 < 8 && board[targetx - 2][targety + 1].getColor() != color) {
                 if (scanHelper(targetx, targety, targetx - 2, targety + 1, color, board, kx, ky)) {
@@ -1114,7 +1113,6 @@ public class Board {
                 }
             }
         }
-
         if (targetx + 1 < 8) {
             if (targety + 2 < 8 && board[targetx + 1][targety + 2].getColor() != color) {
                 if (scanHelper(targetx, targety, targetx + 1, targety + 2, color, board, kx, ky)) {
@@ -1127,7 +1125,6 @@ public class Board {
                 }
             }
         }
-
         if (targetx - 1 > 0) {
             if (targety + 2 < 8 && board[targetx - 1][targety + 2].getColor() != color) {
                 if (scanHelper(targetx, targety, targetx - 1, targety + 2, color, board, kx, ky)) {
@@ -1159,13 +1156,11 @@ public class Board {
                     return true;
                 }
             }
-
             if (x > 0 && board[x - 1][y + i].getColor() == hostile) {
                 if (scanHelper(x, y, x - 1, y + i, color, board, kx, ky)) {
                     return true;
                 }
             }
-
             if (x < 7 && board[x + 1][y + i].getColor() == hostile) {
                 if (scanHelper(x, y, x + 1, y + i, color, board, kx, ky)) {
                     return true;
