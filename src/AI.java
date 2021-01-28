@@ -189,7 +189,7 @@ public class AI {
 
     private Node bestWhite(Hashtable<String, ArrayList<Node>> graph, Node node, int talpha, int beta, int depthBound, int currDepth) {
         currDepth++;
-        Node v = new Node(minScore, false);
+        Node wNode = new Node(minScore, false);
         boolean childless = true;
         int alpha = talpha;
         // checks depth
@@ -197,18 +197,17 @@ public class AI {
             if (node.isLeaf()) {
                 return node;
             }
-            // node is not a leaf by this point so getLabel will work
             for (Node child : graph.get(node.getCoords())) {
-                Node v1 = bestBlack(graph, child, alpha, beta, depthBound, currDepth);
+                Node bestBNode = bestBlack(graph, child, alpha, beta, depthBound, currDepth);
                 childless = false;
-                if (v1.getScore() >= v.getScore()) {
-                    v = new Node(v1);
+                if (bestBNode.getScore() >= wNode.getScore()) {
+                    wNode = new Node(bestBNode);
                 }
-                if(alpha < v.getScore()){
-                    alpha = v.getScore();
+                if(alpha < wNode.getScore()){
+                    alpha = wNode.getScore();
                 }
                 if(beta <= alpha){
-                   return v;
+                   return wNode;
                 }
             }
             if(childless){ // I think this happens when the node is not the bottom of the tree but there are no moves afterwords
@@ -217,12 +216,12 @@ public class AI {
         } else {
             return node;
         }
-        return v;
+        return wNode;
     }
 
     private Node bestBlack(Hashtable<String, ArrayList<Node>> graph, Node node, int alpha, int tbeta, int depthBound, int currDepth) {
         currDepth++;
-        Node v = new Node(maxScore, false);
+        Node bNode = new Node(maxScore, false);
         int beta = tbeta;
         boolean childless = true;
         // checks depth
@@ -230,18 +229,17 @@ public class AI {
             if (node.isLeaf()) {
                 return node;
             }
-            // node is not a leaf by this point so getLabel will work
             for (Node child : graph.get(node.getCoords())) {
-                Node v1 = bestWhite(graph, child, alpha, beta, depthBound, currDepth);
+                Node bestWNode = bestWhite(graph, child, alpha, beta, depthBound, currDepth);
                 childless = false;
-                if (v1.getScore() <= v.getScore()) {
-                    v = new Node(v1);
+                if (bestWNode.getScore() <= bNode.getScore()) {
+                    bNode = new Node(bestWNode);
                 }
-                if(beta > v.getScore()){
-                    beta = v.getScore();
+                if(beta > bNode.getScore()){
+                    beta = bNode.getScore();
                 }
                 if(beta <= alpha){
-                    return v;
+                    return bNode;
                 }
             }
             if(childless){ // I think this happens when the node is not the bottom of the tree but there are no moves afterwords
@@ -250,7 +248,7 @@ public class AI {
         } else {
             return node;
         }
-        return v;
+        return bNode;
     }
 
     private int getCount(int color) {

@@ -1,6 +1,7 @@
 /**
 this class runs the chess game and checks for valid moves and checkmates
 it also helps the AI score the board
+ Many of the methods are static to help improve computation time for the AI
  */
 public class Board {
     private Space[][] board;
@@ -90,6 +91,7 @@ public class Board {
         return board[x][y].getId();
     }
 
+    // returns color of specified piece
     public int colorHelper(int x, int y){
         return board[x][y].getColor();
     }
@@ -108,17 +110,17 @@ public class Board {
 
     // checks if color is in check
     public boolean isCheckMate(int color) {
-        int x = kings.getX(color);
-        int y = kings.getY(color);
+        int kx = kings.getX(color);
+        int ky = kings.getY(color);
 
         kings.clear();
 
-        if(!isSafe(x, y, color, board)){
+        if(!isSafe(kx, ky, color, board)){
             kings.setCheck(true, color);
-            if (kingEscape(x, y, color, board)) {
+            if (kingEscape(kx, ky, color, board)) {
                 return false;
             } else {
-                return !canBlock(color, board, x, y);
+                return !canBlock(color, board, kx, ky);
             }
         } else {
             return false;
@@ -176,13 +178,13 @@ public class Board {
 
     // checks for valid moves
     public boolean canMove(int color) {
-        int x = kings.getX(color);
-        int y = kings.getY(color);
+        int kx = kings.getX(color);
+        int ky = kings.getY(color);
 
-        if(kingEscape(x,y,color,board)){
+        if(kingEscape(kx,ky,color,board)){
             return true;
         } else {
-            return canBlock(color, board, x, y);
+            return canBlock(color, board, kx, ky);
         }
     }
 
@@ -235,6 +237,7 @@ public class Board {
         backup();
     }
 
+    // checks if specified piece can be promoted
     public boolean canPromote(int x, int y, int color) {
         if(board[x][y].isPawn(color)) {
             return (color == 1 && y == 7) || (color == 2 && y == 0);
@@ -351,7 +354,6 @@ public class Board {
             }
         }
 
-
         if(valid){
             scoreHolder = new ScoreHolder(board);
         }  else {
@@ -410,6 +412,27 @@ public class Board {
         }
     }
 
+    // updates oldBoard
+    private void backup() {
+        for (int y = 0; y < 8; y++) {
+            for (int x = 0; x < 8; x++) {
+                oldBoard[x][y] = new Space(board[x][y]);
+            }
+        }
+    }
+
+    // resets the board
+    private void reset() {
+        for (int y = 0; y < 8; y++) {
+            for (int x = 0; x < 8; x++) {
+                board[x][y] = new Space(oldBoard[x][y]);
+            }
+        }
+    }
+
+
+    //--private statics--
+
     // checks if a possible move will save the king
     private static boolean moveTest(int x, int y, int targetx, int targety, int currentColor, Space[][] board) {
         if (x == targetx && y == targety) { // prevents repeats
@@ -428,6 +451,10 @@ public class Board {
             return moveQueen(x, y, targetx, targety, board);
         }
         return false;
+    }
+
+    private static boolean checkInput(int x, int y) {
+        return x >= 0 && x < 8 && y >= 0 && y < 8;
     }
 
     // checks if the king can escape
@@ -455,29 +482,6 @@ public class Board {
         return false;
     }
 
-    // updates oldBoard
-    private void backup() {
-        for (int y = 0; y < 8; y++) {
-            for (int x = 0; x < 8; x++) {
-                oldBoard[x][y] = new Space(board[x][y]);
-            }
-        }
-    }
-
-    // resets the board
-    private void reset() {
-        for (int y = 0; y < 8; y++) {
-            for (int x = 0; x < 8; x++) {
-                board[x][y] = new Space(oldBoard[x][y]);
-            }
-        }
-    }
-
-    private static boolean checkInput(int x, int y) {
-        return x >= 0 && x < 8 && y >= 0 && y < 8;
-    }
-
-    //--private statics--
     // checks if the king is safe
     private static boolean checkKing(int color, Space[][] board){
         int[] xy = findKing(color, board);

@@ -56,11 +56,11 @@ public class King {
 
     }
 
-    public void setCheck(boolean temp, int color){
+    public void setCheck(boolean check, int color){
         if(color == 1){
-            bcheck = temp;
+            bcheck = check;
         } else {
-            wcheck = temp;
+            wcheck = check;
         }
     }
 
