@@ -35,7 +35,7 @@ public class AI {
         int depthBound = DepthBound;
 
         if (bCount < 8 || wCount < 8) { // increase depth bound near end of the game to improve checkmate ability
-            depthBound += 2;
+            depthBound += 1; //2;
             if((bCount < 7 && color == 2) || (wCount < 7 && color == 1)){
                 depthBound += 1;
             }
@@ -161,6 +161,7 @@ public class AI {
         ScoreHolder scoreHolder = Board.AICheck(x,y,targetx,targety,myColor,tBoard);
 
         if(scoreHolder.isValid()){
+
             String coords = "" + x + y + targetx + targety;
             boolean leaf = false;
             if (depth <= 0) { // takes care of leaf nodes
@@ -176,7 +177,6 @@ public class AI {
 
     private String ab(Hashtable<String, ArrayList<Node>> graph, Node root, int player, int depthBound) {
         Node bestMove;
-
         if (player == 2) {
             bestMove = bestWhite(graph, root, minScore, maxScore, depthBound, 0);
         } else {
@@ -198,6 +198,7 @@ public class AI {
                 return node;
             }
             for (Node child : graph.get(node.getCoords())) {
+
                 Node bestBNode = bestBlack(graph, child, alpha, beta, depthBound, currDepth);
                 childless = false;
                 if (bestBNode.getScore() >= wNode.getScore()) {
@@ -206,9 +207,12 @@ public class AI {
                 if(alpha < wNode.getScore()){
                     alpha = wNode.getScore();
                 }
+
                 if(beta <= alpha){
                    return wNode;
                 }
+
+
             }
             if(childless){ // I think this happens when the node is not the bottom of the tree but there are no moves afterwords
                 return node;
@@ -229,6 +233,7 @@ public class AI {
             if (node.isLeaf()) {
                 return node;
             }
+
             for (Node child : graph.get(node.getCoords())) {
                 Node bestWNode = bestWhite(graph, child, alpha, beta, depthBound, currDepth);
                 childless = false;
@@ -238,9 +243,11 @@ public class AI {
                 if(beta > bNode.getScore()){
                     beta = bNode.getScore();
                 }
+
                 if(beta <= alpha){
                     return bNode;
                 }
+
             }
             if(childless){ // I think this happens when the node is not the bottom of the tree but there are no moves afterwords
                 return node;

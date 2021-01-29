@@ -34,7 +34,7 @@ public class Board {
         board[4][0].setPiece("K", 'k', 1);
 
         board[3][7].setPiece("Q", 'q', 2);
-        board[3][0].setPiece("Q", 'q', 1);
+        board[3][0].setPiece("q", 'q', 1);
 
         board[2][7].setPiece("B", 'b', 2);
         board[5][7].setPiece("B", 'b', 2);
@@ -43,8 +43,8 @@ public class Board {
 
         board[6][7].setPiece("N", 'n', 2);
         board[1][7].setPiece("N", 'n', 2);
-        board[6][0].setPiece("N", 'n', 1);
-        board[1][0].setPiece("N", 'n', 1);
+        board[6][0].setPiece("n", 'n', 1);
+        board[1][0].setPiece("n", 'n', 1);
 
         board[0][7].setPiece("R", 'r', 2);
         board[7][7].setPiece("R", 'r', 2);
@@ -110,6 +110,9 @@ public class Board {
 
     // checks if color is in check
     public boolean isCheckMate(int color) {
+        if (kings.isCaptured(color)){ // should never happen but acts as a failsafe
+            return true;
+        }
         int kx = kings.getX(color);
         int ky = kings.getY(color);
 
@@ -132,7 +135,6 @@ public class Board {
         if (x == targetx && y == targety) { // prevents repeats
             return false;
         }
-
         if ((checkInput(x, y)) && (checkInput(targetx, targety))) {
             if (board[x][y].getColor() != currentColor) {
                 return false;
@@ -184,13 +186,15 @@ public class Board {
         if(kingEscape(kx,ky,color,board)){
             return true;
         } else {
-            return canBlock(color, board, kx, ky);
+            return canBlock(color,board,kx,ky);
         }
     }
 
     // The AI has already vetted its move so checking again would be redundant
     public void AIMove(int x, int y, int targetx, int targety, int currentColor) {
-
+        if (board[targetx][targety].isKing(getOpponent(currentColor))) { // failsafe
+            kings.capture(getOpponent(currentColor));
+        }
         if (board[x][y].getType() == 'k') {
             if (x == 4) {
                 if (targetx == 7) {
@@ -373,8 +377,10 @@ public class Board {
         if (!isSafe(xy[0], xy[1], color, board)) {
             if (isCheckMate(color, board, xy[0], xy[1])){
                 if (color == 1) {
+
                     return 4000;
                 } else {
+                    printBoard(board);
                     return -4000;
                 }
             } else {
@@ -404,8 +410,15 @@ public class Board {
     private boolean moveHelper(int x, int y, int targetx, int targety, int currentColor){
         int kx = kings.getX(currentColor);
         int ky = kings.getY(currentColor);
+        boolean king = false;
+        if (board[targetx][targety].isKing(getOpponent(currentColor))){ // failsafe for if king is somehow captured
+            king = true;
+        }
         makeMove(x, y, targetx, targety, board);
         if(isSafe(kx, ky, currentColor, board)){
+            if (king) { // failsafe only triggers if the move is valid.
+                kings.capture(getOpponent(currentColor));
+            }
             backup();
             return true;
         } else {

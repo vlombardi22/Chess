@@ -218,6 +218,7 @@ public class ScoreHolder {
             count += pwscore;
         }
 
+
         return count;
 
     }

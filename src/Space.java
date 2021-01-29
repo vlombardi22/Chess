@@ -54,7 +54,6 @@ public class Space {
         return type == 'r' && this.color == color;
     }
 
-
     // simple call for if a piece is a pawn used in castling
     public boolean isPawn(int color){
         return type == 'p' && this.color == color;

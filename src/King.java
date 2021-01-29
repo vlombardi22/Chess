@@ -1,5 +1,6 @@
 /**
 This class keeps track of the kings location and if they are in check or not
+ it also has a failsafe for if the king is captured.
  */
 
 public class King {
@@ -9,6 +10,8 @@ public class King {
     private int wy;
     private boolean bcheck;
     private boolean wcheck;
+    private boolean bcaptured;
+    private boolean wcaptured;
 
     public King(int bx, int by, int wx, int wy){
         this.bx = bx;
@@ -17,6 +20,8 @@ public class King {
         this.wy = wy;
         bcheck = false;
         wcheck = false;
+        bcaptured = false;
+        wcaptured = false;
     }
 
 
@@ -64,9 +69,28 @@ public class King {
         }
     }
 
+    public void capture(int color){
+        if(color == 1){
+            bcaptured = true;
+        } else {
+            wcaptured = true;
+        }
+
+    }
+
+    public boolean isCaptured(int color){
+        if(color == 1){
+            return bcaptured;
+        } else {
+            return wcaptured;
+        }
+    }
+
     public void clear(){
         bcheck = false;
         wcheck = false;
+        bcaptured = false;
+        wcaptured = false;
     }
 
 }
